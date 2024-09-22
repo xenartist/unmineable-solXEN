@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var GLOBAL_WORK_DIR string
@@ -19,4 +20,28 @@ func XoosInit() {
 	if err != nil {
 		panic("Unable to get absolute path: " + err.Error())
 	}
+}
+
+func CheckExistingWallet() string {
+	walletDir := "wallet"
+
+	// Check if wallet directory exists
+	if _, err := os.Stat(walletDir); os.IsNotExist(err) {
+		return ""
+	}
+
+	// Read wallet directory
+	files, err := os.ReadDir(walletDir)
+	if err != nil {
+		return ""
+	}
+
+	// Look for .solXENwallet file
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".solXENwallet") {
+			return strings.TrimSuffix(file.Name(), ".solXENwallet")
+		}
+	}
+
+	return ""
 }

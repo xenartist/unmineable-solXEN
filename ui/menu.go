@@ -44,7 +44,7 @@ func getModuleName(index int) string {
 	return fmt.Sprintf("Module %d", index+1)
 }
 
-func SetupInputCapture(app *tview.Application) {
+func SetupInputCapture(app *tview.Application, funcToRun func()) {
 	var quitCount int
 	var lastQuitTime time.Time
 

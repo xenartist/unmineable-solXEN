@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,6 +17,8 @@ import (
 	"github.com/gagliardetto/solana-go"
 	"github.com/rivo/tview"
 )
+
+var PRIVATE_KEY string
 
 func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage LogMessageFunc, password string) (string, error) {
 	// Check for existing wallet
@@ -76,6 +79,45 @@ func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage
 
 	logMessage(logView, "Wallet created successfully: "+publicKey)
 	return publicKey, nil
+}
+
+func VerifyPassword(publicKey string, password string) bool {
+	// Construct the wallet file name
+	walletFileName := publicKey + ".solXENwallet"
+	walletFilePath := filepath.Join("wallet", walletFileName)
+
+	// Read the wallet file
+	encryptedData, err := ioutil.ReadFile(walletFilePath)
+	if err != nil {
+		// File not found or unable to read
+		return false
+	}
+
+	// Attempt to decrypt the wallet file
+	decryptedData, err := decrypt(encryptedData, []byte(password))
+	if err != nil {
+		// Decryption failed
+		return false
+	}
+
+	// Parse the decrypted JSON data
+	var walletData struct {
+		PublicKey  string `json:"public_key"`
+		PrivateKey string `json:"private_key"`
+	}
+	err = json.Unmarshal(decryptedData, &walletData)
+	if err != nil {
+		// JSON parsing failed
+		return false
+	}
+
+	// Verify public key and store private key if successful
+	if walletData.PublicKey == publicKey {
+		PRIVATE_KEY = walletData.PrivateKey
+		return true
+	}
+
+	return false
 }
 
 func encrypt(plaintext, password []byte) ([]byte, error) {
