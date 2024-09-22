@@ -102,6 +102,10 @@ func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage
 		return "", err
 	}
 
+	// Set global variables
+	GLOBAL_PRIVATE_KEY = base64.StdEncoding.EncodeToString(privateKey)
+	GLOBAL_PUBLIC_KEY = publicKey
+
 	logMessage(logView, "Wallet created successfully: "+publicKey)
 	return publicKey, nil
 }

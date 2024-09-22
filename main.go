@@ -72,7 +72,7 @@ func showLoginForm(app *tview.Application, publicKey string) {
 			showErrorModal("Invalid password")
 		}
 	}).
-		AddButton("Exit", func() {
+		AddButton("Quit", func() {
 			app.Stop()
 		})
 

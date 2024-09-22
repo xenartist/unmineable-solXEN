@@ -3,6 +3,7 @@ package ui
 import (
 	"xoon/utils"
 
+	"github.com/atotto/clipboard"
 	"github.com/rivo/tview"
 )
 
@@ -10,6 +11,7 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 	moduleUI := CreateModuleUI("Solana Wallet", app)
 
 	var createWalletForm *tview.Form
+	var manageWalletForm *tview.Form
 
 	// Create Wallet form
 	createWalletForm = tview.NewForm().
@@ -29,26 +31,39 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 			}
 
 			utils.CreateNewWallet(app, moduleUI.LogView, utils.LogMessage, password)
+
+			// After successful wallet creation, update the TextView
+			go func() {
+				newPublicKey := utils.GLOBAL_PUBLIC_KEY
+				app.QueueUpdateDraw(func() {
+					publicKeyTextView := manageWalletForm.GetFormItemByLabel("Public Key").(*tview.TextView)
+					publicKeyTextView.SetText(newPublicKey)
+				})
+			}()
 		})
 	createWalletForm.SetBorder(true).SetTitle("Create Wallet")
 
 	// Manage Wallet form
-	manageWalletForm := tview.NewForm()
+	manageWalletForm = tview.NewForm()
 	manageWalletForm.
+		AddTextView("Public Key", utils.GLOBAL_PUBLIC_KEY, 0, 1, false, true).
 		AddButton("Copy Public Key", func() {
-			// TODO: Implement copy to clipboard
+			err := clipboard.WriteAll(utils.GLOBAL_PUBLIC_KEY)
+			if err != nil {
+				utils.LogMessage(moduleUI.LogView, "Error copying public key to clipboard: "+err.Error())
+			} else {
+				utils.LogMessage(moduleUI.LogView, "Public key copied to clipboard successfully")
+			}
 		}).
-		AddPasswordField("Password:", "", 32, '*', nil).
 		AddButton("Copy Private Key", func() {
-			// TODO: Implement decryption and copy to clipboard
+			err := clipboard.WriteAll(utils.GLOBAL_PRIVATE_KEY)
+			if err != nil {
+				utils.LogMessage(moduleUI.LogView, "Error copying private key to clipboard: "+err.Error())
+			} else {
+				utils.LogMessage(moduleUI.LogView, "Private key copied to clipboard successfully")
+			}
 		})
 	manageWalletForm.SetBorder(true).SetTitle("Manage Wallet")
-
-	// Update public key display
-	updatePublicKeyDisplay := func() {
-		// TODO: Read wallet file and update publicKeyText
-	}
-	updatePublicKeyDisplay()
 
 	// Create a flex layout for vertical arrangement
 	walletFlex := tview.NewFlex().SetDirection(tview.FlexRow).
