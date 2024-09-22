@@ -43,35 +43,36 @@ func main() {
 
 func showLoginForm(app *tview.Application, publicKey string) {
 	var passwordFieldIndex int
+	var errorTextView *tview.TextView
 
 	loginForm = tview.NewForm().
-		AddTextView("Instructions", "Please input password for existing encrypted wallet to unlock unmineable solXEN miner", 0, 2, false, false)
+		AddTextView("Instructions", "Please input password for existing encrypted wallet to unlock unmineable solXEN Miner", 0, 2, false, false)
 
 	passwordFieldIndex = loginForm.GetFormItemCount()
 	loginForm.AddPasswordField("Password:", "", 32, '*', nil)
 
-	loginForm.AddButton("Login", func() {
+	loginForm.AddButton("Unlock", func() {
 		password := loginForm.GetFormItem(passwordFieldIndex).(*tview.InputField).GetText()
 		if utils.VerifyPassword(publicKey, password) {
 			showMainInterface(app)
 		} else {
 			// Show error message
-			//TODO
-			// app.QueueUpdateDraw(func() {
-			// 	// Check if error message already exists
-			// 	errorIndex := loginForm.GetFormItemCount() - 1
-			// 	if loginForm.GetFormItemCount() > passwordFieldIndex+2 {
-			// 		loginForm.RemoveFormItem(errorIndex)
-			// 	}
-			// 	loginForm.AddTextView("Error:", "Invalid password", 0, 1, false, false)
-			// })
+			errorTextView.SetText("[red]Invalid password[-]")
+			app.Draw()
 		}
 	}).
 		AddButton("Exit", func() {
 			app.Stop()
 		})
 
-	loginForm.SetBorder(true).SetTitle("Login to Wallet")
+	// Add error TextView after the buttons
+	errorTextView = tview.NewTextView().
+		SetDynamicColors(true).
+		SetText("").
+		SetTextAlign(tview.AlignCenter)
+	loginForm.AddFormItem(errorTextView)
+
+	loginForm.SetBorder(true).SetTitle("Unlock umineable solXEN Miner")
 	rootFlex.Clear()
 	rootFlex.AddItem(loginForm, 0, 1, true)
 }
