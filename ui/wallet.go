@@ -58,12 +58,22 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 				utils.LogMessage(moduleUI.LogView, "Public key copied to clipboard successfully")
 			}
 		}).
+		AddPasswordField("Input password to copy private key:", "", 32, '*', nil).
 		AddButton("Copy Private Key", func() {
-			err := clipboard.WriteAll(utils.GLOBAL_PRIVATE_KEY)
-			if err != nil {
-				utils.LogMessage(moduleUI.LogView, "Error copying private key to clipboard: "+err.Error())
+			password := manageWalletForm.GetFormItem(1).(*tview.InputField).GetText()
+			if password == "" {
+				utils.LogMessage(moduleUI.LogView, "Please enter your password to copy the Private Key")
+				return
+			} else if password != utils.GLOBAL_PASSWORD {
+				utils.LogMessage(moduleUI.LogView, "Incorrect password")
 			} else {
-				utils.LogMessage(moduleUI.LogView, "Private key copied to clipboard successfully")
+				err := clipboard.WriteAll(utils.GLOBAL_PRIVATE_KEY)
+				if err != nil {
+					utils.LogMessage(moduleUI.LogView, "Error copying private key to clipboard: "+err.Error())
+				} else {
+					utils.LogMessage(moduleUI.LogView, "Private key copied to clipboard successfully")
+					manageWalletForm.GetFormItem(1).(*tview.InputField).SetText("")
+				}
 			}
 		})
 	manageWalletForm.SetBorder(true).SetTitle("Manage Wallet")

@@ -18,6 +18,7 @@ import (
 	"github.com/rivo/tview"
 )
 
+var GLOBAL_PASSWORD string = ""
 var GLOBAL_PUBLIC_KEY string = ""
 var GLOBAL_PRIVATE_KEY string = ""
 
@@ -103,6 +104,7 @@ func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage
 	}
 
 	// Set global variables
+	GLOBAL_PASSWORD = password
 	GLOBAL_PRIVATE_KEY = base64.StdEncoding.EncodeToString(privateKey)
 	GLOBAL_PUBLIC_KEY = publicKey
 
@@ -148,6 +150,7 @@ func VerifyPassword(publicKey string, password string) bool {
 
 	// Verify public key and store private key if successful
 	if walletData.PublicKey == publicKey {
+		GLOBAL_PASSWORD = password
 		GLOBAL_PRIVATE_KEY = walletData.PrivateKey
 		GLOBAL_PUBLIC_KEY = walletData.PublicKey
 		LogToFile("Public key verified successfully")
