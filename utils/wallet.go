@@ -82,23 +82,28 @@ func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage
 }
 
 func VerifyPassword(publicKey string, password string) bool {
+	LogToFile("Starting password verification for public key: " + publicKey)
+
 	// Construct the wallet file name
 	walletFileName := publicKey + ".solXENwallet"
 	walletFilePath := filepath.Join("wallet", walletFileName)
+	LogToFile("Wallet file path: " + walletFilePath)
 
 	// Read the wallet file
 	encryptedData, err := ioutil.ReadFile(walletFilePath)
 	if err != nil {
-		// File not found or unable to read
+		LogToFile("Error reading wallet file: " + err.Error())
 		return false
 	}
+	LogToFile("Wallet file read successfully")
 
 	// Attempt to decrypt the wallet file
 	decryptedData, err := decrypt(encryptedData, []byte(password))
 	if err != nil {
-		// Decryption failed
+		LogToFile("Decryption failed: " + err.Error())
 		return false
 	}
+	LogToFile("Wallet decrypted successfully")
 
 	// Parse the decrypted JSON data
 	var walletData struct {
@@ -107,16 +112,19 @@ func VerifyPassword(publicKey string, password string) bool {
 	}
 	err = json.Unmarshal(decryptedData, &walletData)
 	if err != nil {
-		// JSON parsing failed
+		LogToFile("JSON parsing failed: " + err.Error())
 		return false
 	}
+	LogToFile("JSON parsed successfully")
 
 	// Verify public key and store private key if successful
 	if walletData.PublicKey == publicKey {
 		PRIVATE_KEY = walletData.PrivateKey
+		LogToFile("Public key verified successfully")
 		return true
 	}
 
+	LogToFile("Public key verification failed")
 	return false
 }
 

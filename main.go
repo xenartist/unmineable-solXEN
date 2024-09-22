@@ -10,11 +10,12 @@ import (
 var rootFlex *tview.Flex
 var loginForm *tview.Form
 var mainFlex *tview.Flex
+var app *tview.Application
 
 func main() {
 	utils.XoosInit()
 
-	app := tview.NewApplication()
+	app = tview.NewApplication()
 	rootFlex = tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// Check for existing wallet
@@ -41,9 +42,21 @@ func main() {
 	}
 }
 
+func showErrorModal(message string) {
+	modal := tview.NewModal().
+		SetText(message).
+		AddButtons([]string{"OK"}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			if buttonLabel == "OK" {
+				app.SetRoot(rootFlex, true)
+			}
+		})
+
+	app.SetRoot(modal, false)
+}
+
 func showLoginForm(app *tview.Application, publicKey string) {
 	var passwordFieldIndex int
-	var errorTextView *tview.TextView
 
 	loginForm = tview.NewForm().
 		AddTextView("Instructions", "Please input password for existing encrypted wallet to unlock unmineable solXEN Miner", 0, 2, false, false)
@@ -56,21 +69,12 @@ func showLoginForm(app *tview.Application, publicKey string) {
 		if utils.VerifyPassword(publicKey, password) {
 			showMainInterface(app)
 		} else {
-			// Show error message
-			errorTextView.SetText("[red]Invalid password[-]")
-			app.Draw()
+			showErrorModal("Invalid password")
 		}
 	}).
 		AddButton("Exit", func() {
 			app.Stop()
 		})
-
-	// Add error TextView after the buttons
-	errorTextView = tview.NewTextView().
-		SetDynamicColors(true).
-		SetText("").
-		SetTextAlign(tview.AlignCenter)
-	loginForm.AddFormItem(errorTextView)
 
 	loginForm.SetBorder(true).SetTitle("Unlock umineable solXEN Miner")
 	rootFlex.Clear()

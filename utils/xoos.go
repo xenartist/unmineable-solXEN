@@ -20,6 +20,8 @@ func XoosInit() {
 	if err != nil {
 		panic("Unable to get absolute path: " + err.Error())
 	}
+
+	initFileLogger()
 }
 
 func CheckExistingWallet() string {
