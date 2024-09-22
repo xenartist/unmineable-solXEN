@@ -17,18 +17,12 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 	}
 
 	// Create form
-	publicKeyInput := tview.NewInputField().
-		SetLabel("Solana Public Key").
-		SetPlaceholder("Input public address").
-		SetFieldWidth(46)
-
-	form := tview.NewForm().
-		AddFormItem(publicKeyInput)
-
-	form.AddButton("Install Miner", func() { xenblocks.InstallXmrig(app, moduleUI.LogView, utils.LogMessage) }).
+	form := tview.NewForm()
+	form.AddTextView("Public Key", utils.GLOBAL_PUBLIC_KEY, 0, 1, false, true).
+		AddButton("Install Miner", func() { xenblocks.InstallXmrig(app, moduleUI.LogView, utils.LogMessage) }).
 		AddButton("Start Mining", func() {
 			if !xenblocks.IsMining() {
-				publicKey := publicKeyInput.GetText()
+				publicKey := utils.GLOBAL_PUBLIC_KEY
 				xenblocks.StartMining(app, moduleUI.LogView, utils.LogMessage, publicKey)
 			}
 		}).
