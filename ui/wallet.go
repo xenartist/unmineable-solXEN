@@ -58,11 +58,11 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 				utils.LogMessage(moduleUI.LogView, "Public key copied to clipboard successfully")
 			}
 		}).
-		AddPasswordField("Input password to copy private key:", "", 32, '*', nil).
+		AddPasswordField("Input password to copy Private Key:", "", 32, '*', nil).
 		AddButton("Copy Private Key", func() {
 			password := manageWalletForm.GetFormItem(1).(*tview.InputField).GetText()
 			if password == "" {
-				utils.LogMessage(moduleUI.LogView, "Please enter your password to copy the Private Key")
+				utils.LogMessage(moduleUI.LogView, "Please enter your password to copy the private key")
 				return
 			} else if password != utils.GLOBAL_PASSWORD {
 				utils.LogMessage(moduleUI.LogView, "Incorrect password")
