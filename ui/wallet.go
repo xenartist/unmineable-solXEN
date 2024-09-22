@@ -13,18 +13,18 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 
 	// Create Wallet form
 	createWalletForm = tview.NewForm().
-		AddPasswordField("Password (min 8 characters):", "", 0, '*', nil).
-		AddPasswordField("Confirm Password:", "", 0, '*', nil).
+		AddPasswordField("Password (min 8 characters):", "", 32, '*', nil).
+		AddPasswordField("Confirm Password:", "", 32, '*', nil).
 		AddButton("Create Wallet", func() {
 			password := createWalletForm.GetFormItem(0).(*tview.InputField).GetText()
 			confirm := createWalletForm.GetFormItem(1).(*tview.InputField).GetText()
 
 			if len(password) < 8 {
-				moduleUI.LogView.SetText("Password must be at least 8 characters long")
+				moduleUI.LogView.SetText("Password must be at least 8 characters long\n")
 				return
 			}
 			if password != confirm {
-				moduleUI.LogView.SetText("Passwords do not match")
+				moduleUI.LogView.SetText("Passwords do not match\n")
 				return
 			}
 
@@ -38,7 +38,7 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 		AddButton("Copy Public Key", func() {
 			// TODO: Implement copy to clipboard
 		}).
-		AddPasswordField("Password:", "", 0, '*', nil).
+		AddPasswordField("Password:", "", 32, '*', nil).
 		AddButton("Copy Private Key", func() {
 			// TODO: Implement decryption and copy to clipboard
 		})

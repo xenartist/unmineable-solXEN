@@ -11,12 +11,28 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/rivo/tview"
 )
 
 func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage LogMessageFunc, password string) (string, error) {
+	// Check for existing wallet
+	files, err := os.ReadDir("wallet")
+	if err != nil && !os.IsNotExist(err) {
+		logMessage(logView, "Error reading wallet directory: "+err.Error())
+		return "", err
+	}
+
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".solXENwallet") {
+			publicKey := strings.TrimSuffix(file.Name(), ".solXENwallet")
+			logMessage(logView, "Wallet already exists with public key: "+publicKey)
+			return publicKey, nil
+		}
+	}
+
 	// Generate Solana keypair
 	logMessage(logView, "Generating new wallet...")
 	account := solana.NewWallet()
