@@ -18,7 +18,32 @@ import (
 	"github.com/rivo/tview"
 )
 
-var PRIVATE_KEY string
+var GLOBAL_PUBLIC_KEY string = ""
+var GLOBAL_PRIVATE_KEY string = ""
+
+func CheckExistingWallet() string {
+	walletDir := "wallet"
+
+	// Check if wallet directory exists
+	if _, err := os.Stat(walletDir); os.IsNotExist(err) {
+		return ""
+	}
+
+	// Read wallet directory
+	files, err := os.ReadDir(walletDir)
+	if err != nil {
+		return ""
+	}
+
+	// Look for .solXENwallet file
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".solXENwallet") {
+			return strings.TrimSuffix(file.Name(), ".solXENwallet")
+		}
+	}
+
+	return ""
+}
 
 func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage LogMessageFunc, password string) (string, error) {
 	// Check for existing wallet
@@ -119,7 +144,8 @@ func VerifyPassword(publicKey string, password string) bool {
 
 	// Verify public key and store private key if successful
 	if walletData.PublicKey == publicKey {
-		PRIVATE_KEY = walletData.PrivateKey
+		GLOBAL_PRIVATE_KEY = walletData.PrivateKey
+		GLOBAL_PUBLIC_KEY = walletData.PublicKey
 		LogToFile("Public key verified successfully")
 		return true
 	}
