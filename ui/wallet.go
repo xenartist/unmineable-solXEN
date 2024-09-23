@@ -36,7 +36,7 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 				// Hide createWalletForm
 				createWalletForm.Clear(true)
 
-				newPublicKey := utils.GLOBAL_PUBLIC_KEY
+				newPublicKey := utils.GLOBAL_PUBLIC_KEY[:8] + "********"
 				app.QueueUpdateDraw(func() {
 					publicKeyTextView := manageWalletForm.GetFormItemByLabel("Public Key").(*tview.TextView)
 					publicKeyTextView.SetText(newPublicKey)
@@ -47,22 +47,37 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 
 	// Manage Wallet form
 	manageWalletForm = tview.NewForm()
+
+	// Determine the public key display text
+	publicKeyDisplay := ""
+	if utils.GLOBAL_PUBLIC_KEY != "" {
+		publicKeyDisplay = utils.GLOBAL_PUBLIC_KEY[:8] + "********"
+	}
+
 	manageWalletForm.
-		AddTextView("Public Key", utils.GLOBAL_PUBLIC_KEY, 0, 1, false, true).
+		AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
 		AddPasswordField("Input password to export wallet:", "", 32, '*', nil).
-		AddButton("Export Wallet", func() {
+		AddButton("Export Public Key", func() {
+			err := utils.ExportPublicKey()
+			if err != nil {
+				utils.LogMessage(moduleUI.LogView, "Error exporting public key: "+err.Error())
+			} else {
+				utils.LogMessage(moduleUI.LogView, "Public key exported successfully to wallet folder")
+			}
+		}).
+		AddButton("Export Private Key", func() {
 			password := manageWalletForm.GetFormItem(1).(*tview.InputField).GetText()
 			if password == "" {
-				utils.LogMessage(moduleUI.LogView, "Please enter your password to export the wallet")
+				utils.LogMessage(moduleUI.LogView, "Please enter your password to export the private key")
 				return
 			} else if password != utils.GLOBAL_PASSWORD {
 				utils.LogMessage(moduleUI.LogView, "Incorrect password")
 			} else {
-				err := utils.ExportWallet()
+				err := utils.ExportPrivateKey()
 				if err != nil {
-					utils.LogMessage(moduleUI.LogView, "Error exporting wallet: "+err.Error())
+					utils.LogMessage(moduleUI.LogView, "Error exporting private key: "+err.Error())
 				} else {
-					utils.LogMessage(moduleUI.LogView, "Wallet exported successfully under wallet folder")
+					utils.LogMessage(moduleUI.LogView, "Private key exported successfully to wallet folder")
 					manageWalletForm.GetFormItem(1).(*tview.InputField).SetText("")
 				}
 			}

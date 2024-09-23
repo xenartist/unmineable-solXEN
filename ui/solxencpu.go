@@ -18,7 +18,13 @@ func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 	// Create form
 	form := tview.NewForm()
 
-	form.AddTextView("Public Key", utils.GLOBAL_PUBLIC_KEY, 0, 1, false, true).
+	// Determine the public key display text
+	publicKeyDisplay := ""
+	if utils.GLOBAL_PUBLIC_KEY != "" {
+		publicKeyDisplay = utils.GLOBAL_PUBLIC_KEY[:8] + "********"
+	}
+
+	form.AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
 		AddButton("Install Miner", func() { xenblocks.InstallXmrig(app, moduleUI.LogView, utils.LogMessage) }).
 		AddButton("Start Mining", func() {
 			if !xenblocks.IsMining() {

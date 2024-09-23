@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -96,7 +95,7 @@ func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage
 		logMessage(logView, "Error creating wallet directory: "+err.Error())
 		return "", err
 	}
-	fileName := fmt.Sprintf("%s.solXENwallet", publicKey)
+	fileName := fmt.Sprintf("%s.solXENwallet", publicKey[:8])
 	err = os.WriteFile(filepath.Join("wallet", fileName), ciphertext, 0600)
 	if err != nil {
 		logMessage(logView, "Error saving encrypted data: "+err.Error())
@@ -108,20 +107,29 @@ func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage
 	GLOBAL_PRIVATE_KEY = base64.StdEncoding.EncodeToString(privateKey)
 	GLOBAL_PUBLIC_KEY = publicKey
 
-	logMessage(logView, "Wallet created successfully: "+publicKey)
+	logMessage(logView, "Wallet created successfully: "+publicKey[:8]+"********")
 	return publicKey, nil
 }
 
-func VerifyPassword(publicKey string, password string) bool {
-	LogToFile("Starting password verification for public key: " + publicKey)
+func VerifyPassword(password string) bool {
+	LogToFile("Starting password verification for public key")
 
-	// Construct the wallet file name
-	walletFileName := publicKey + ".solXENwallet"
-	walletFilePath := filepath.Join("wallet", walletFileName)
-	LogToFile("Wallet file path: " + walletFilePath)
+	// Check for existing wallet
+	files, err := os.ReadDir("wallet")
+	if err != nil && !os.IsNotExist(err) {
+		LogToFile("Error reading wallet directory: " + err.Error())
+		return false
+	}
+
+	walletFilePath := ""
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".solXENwallet") {
+			walletFilePath = filepath.Join("wallet", file.Name())
+		}
+	}
 
 	// Read the wallet file
-	encryptedData, err := ioutil.ReadFile(walletFilePath)
+	encryptedData, err := os.ReadFile(walletFilePath)
 	if err != nil {
 		LogToFile("Error reading wallet file: " + err.Error())
 		return false
@@ -148,8 +156,19 @@ func VerifyPassword(publicKey string, password string) bool {
 	}
 	LogToFile("JSON parsed successfully")
 
+	// Decode the private key
+	privateKeyBytes, err := base64.StdEncoding.DecodeString(walletData.PrivateKey)
+	if err != nil {
+		LogToFile("Private key decoding failed: " + err.Error())
+		return false
+	}
+
+	// Generate the public key from the private key
+	account := solana.PrivateKey(privateKeyBytes)
+	generatedPublicKey := account.PublicKey().String()
+
 	// Verify public key and store private key if successful
-	if walletData.PublicKey == publicKey {
+	if generatedPublicKey == walletData.PublicKey {
 		GLOBAL_PASSWORD = password
 		GLOBAL_PRIVATE_KEY = walletData.PrivateKey
 		GLOBAL_PUBLIC_KEY = walletData.PublicKey
@@ -200,8 +219,8 @@ func decrypt(ciphertext []byte, password []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
-func ExportWallet() error {
-	LogToFile("Starting wallet export")
+func ExportPrivateKey() error {
+	LogToFile("Starting private key export")
 
 	// Check if global keys are set
 	if GLOBAL_PUBLIC_KEY == "" || GLOBAL_PRIVATE_KEY == "" {
@@ -221,7 +240,7 @@ func ExportWallet() error {
 	}
 
 	// Save export data to file
-	exportFilePath := filepath.Join("wallet", "solXEN-wallet-exported.json")
+	exportFilePath := filepath.Join("wallet", "solXEN-private-key-exported.json")
 	err = os.WriteFile(exportFilePath, exportJSON, 0600)
 	if err != nil {
 		LogToFile("Error saving export data: " + err.Error())
@@ -229,5 +248,36 @@ func ExportWallet() error {
 	}
 
 	LogToFile("Wallet exported successfully to " + exportFilePath)
+	return nil
+}
+
+func ExportPublicKey() error {
+	LogToFile("Starting public key export")
+
+	// Check if global public key is set
+	if GLOBAL_PUBLIC_KEY == "" {
+		LogToFile("Global public key is not set")
+		return errors.New("global public key is not set")
+	}
+
+	// Prepare data for export
+	exportData := map[string]string{
+		"public_key": GLOBAL_PUBLIC_KEY,
+	}
+	exportJSON, err := json.MarshalIndent(exportData, "", "  ")
+	if err != nil {
+		LogToFile("Error marshalling export data: " + err.Error())
+		return err
+	}
+
+	// Save export data to file
+	exportFilePath := filepath.Join("wallet", "solXEN-public-key-exported.json")
+	err = os.WriteFile(exportFilePath, exportJSON, 0600)
+	if err != nil {
+		LogToFile("Error saving export data: " + err.Error())
+		return err
+	}
+
+	LogToFile("Public key exported successfully to " + exportFilePath)
 	return nil
 }

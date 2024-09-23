@@ -19,11 +19,11 @@ func main() {
 	rootFlex = tview.NewFlex().SetDirection(tview.FlexRow)
 
 	// Check for existing wallet
-	publicKey := utils.CheckExistingWallet()
+	partialPublicKey := utils.CheckExistingWallet()
 
-	if publicKey != "" {
+	if partialPublicKey != "" {
 		// Wallet exists, show login screen
-		showLoginForm(app, publicKey)
+		showLoginForm(app)
 	} else {
 		// No wallet exists, show main interface directly
 		showMainInterface(app)
@@ -55,7 +55,7 @@ func showErrorModal(message string) {
 	app.SetRoot(modal, false)
 }
 
-func showLoginForm(app *tview.Application, publicKey string) {
+func showLoginForm(app *tview.Application) {
 	var passwordFieldIndex int
 
 	loginForm = tview.NewForm().
@@ -66,7 +66,7 @@ func showLoginForm(app *tview.Application, publicKey string) {
 
 	loginForm.AddButton("Unlock", func() {
 		password := loginForm.GetFormItem(passwordFieldIndex).(*tview.InputField).GetText()
-		if utils.VerifyPassword(publicKey, password) {
+		if utils.VerifyPassword(password) {
 			showMainInterface(app)
 		} else {
 			showErrorModal("Invalid password")
