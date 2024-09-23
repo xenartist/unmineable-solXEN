@@ -199,3 +199,35 @@ func decrypt(ciphertext []byte, password []byte) ([]byte, error) {
 
 	return plaintext, nil
 }
+
+func ExportWallet() error {
+	LogToFile("Starting wallet export")
+
+	// Check if global keys are set
+	if GLOBAL_PUBLIC_KEY == "" || GLOBAL_PRIVATE_KEY == "" {
+		LogToFile("Global keys are not set")
+		return errors.New("global keys are not set")
+	}
+
+	// Prepare data for export
+	exportData := map[string]string{
+		"public_key":  GLOBAL_PUBLIC_KEY,
+		"private_key": GLOBAL_PRIVATE_KEY,
+	}
+	exportJSON, err := json.MarshalIndent(exportData, "", "  ")
+	if err != nil {
+		LogToFile("Error marshalling export data: " + err.Error())
+		return err
+	}
+
+	// Save export data to file
+	exportFilePath := filepath.Join("wallet", "solXEN-wallet-exported.json")
+	err = os.WriteFile(exportFilePath, exportJSON, 0600)
+	if err != nil {
+		LogToFile("Error saving export data: " + err.Error())
+		return err
+	}
+
+	LogToFile("Wallet exported successfully to " + exportFilePath)
+	return nil
+}

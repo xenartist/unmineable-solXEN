@@ -3,7 +3,6 @@ package ui
 import (
 	"xoon/utils"
 
-	"github.com/atotto/clipboard"
 	"github.com/rivo/tview"
 )
 
@@ -50,30 +49,20 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 	manageWalletForm = tview.NewForm()
 	manageWalletForm.
 		AddTextView("Public Key", utils.GLOBAL_PUBLIC_KEY, 0, 1, false, true).
-		AddButton("Copy Public Key", func() {
-			err := clipboard.WriteAll(utils.GLOBAL_PUBLIC_KEY)
-			if err != nil {
-				utils.LogMessage(moduleUI.LogView, "Error copying public key to clipboard: "+err.Error())
-			} else {
-				utils.LogMessage(moduleUI.LogView, "Public key copied to clipboard successfully")
-			}
-
-			utils.GetUnmineableInfo(utils.GLOBAL_PUBLIC_KEY, "SOL")
-		}).
-		AddPasswordField("Input password to copy Private Key:", "", 32, '*', nil).
-		AddButton("Copy Private Key", func() {
+		AddPasswordField("Input password to export wallet:", "", 32, '*', nil).
+		AddButton("Export Wallet", func() {
 			password := manageWalletForm.GetFormItem(1).(*tview.InputField).GetText()
 			if password == "" {
-				utils.LogMessage(moduleUI.LogView, "Please enter your password to copy the private key")
+				utils.LogMessage(moduleUI.LogView, "Please enter your password to export the wallet")
 				return
 			} else if password != utils.GLOBAL_PASSWORD {
 				utils.LogMessage(moduleUI.LogView, "Incorrect password")
 			} else {
-				err := clipboard.WriteAll(utils.GLOBAL_PRIVATE_KEY)
+				err := utils.ExportWallet()
 				if err != nil {
-					utils.LogMessage(moduleUI.LogView, "Error copying private key to clipboard: "+err.Error())
+					utils.LogMessage(moduleUI.LogView, "Error exporting wallet: "+err.Error())
 				} else {
-					utils.LogMessage(moduleUI.LogView, "Private key copied to clipboard successfully")
+					utils.LogMessage(moduleUI.LogView, "Wallet exported successfully under wallet folder")
 					manageWalletForm.GetFormItem(1).(*tview.InputField).SetText("")
 				}
 			}

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 	"xoon/utils"
 
@@ -57,8 +58,30 @@ func CreateDashboardFlex(title string, app *tview.Application) *tview.Flex {
 				autoPay = "On"
 			}
 
-			infoText := fmt.Sprintf("Balance:%s %s | Auto Pay: %s | Pay On: %s %s",
+			// Convert Balance string to float64
+			balance, err := strconv.ParseFloat(info.Data.Balance, 64)
+			if err != nil {
+				utils.LogToFile(fmt.Sprintf("Error parsing balance: %v", err))
+				balance = 0 // Set to 0 if parsing fails
+			}
+
+			// Get solXEN equivalent
+			solXENAmount, err := utils.GetTokenExchangeAmount(balance, utils.SolXEN)
+			if err != nil {
+				utils.LogToFile(fmt.Sprintf("Error getting solXEN amount: %v", err))
+				solXENAmount = 0 // Set to 0 if there's an error
+			}
+
+			// Get OG solXEN equivalent
+			ogSolXENAmount, err := utils.GetTokenExchangeAmount(balance, utils.OGSolXEN)
+			if err != nil {
+				utils.LogToFile(fmt.Sprintf("Error getting OG solXEN amount: %v", err))
+				ogSolXENAmount = 0 // Set to 0 if there's an error
+			}
+
+			infoText := fmt.Sprintf("Balance:%s %s (%.2f solXEN | %.2f OG solXEN) | AutoPay: %s | PayOn: %s %s",
 				info.Data.Balance, info.Data.Network,
+				solXENAmount, ogSolXENAmount,
 				autoPay,
 				info.Data.PaymentThreshold, info.Data.Network)
 
@@ -71,9 +94,9 @@ func CreateDashboardFlex(title string, app *tview.Application) *tview.Flex {
 	// Initial update
 	updateUnmineableInfo()
 
-	// Set up a ticker to update every 10 minutes
+	// Set up a ticker to update every 60 minutes
 	go func() {
-		ticker := time.NewTicker(10 * time.Minute)
+		ticker := time.NewTicker(time.Hour)
 		for range ticker.C {
 			updateUnmineableInfo()
 		}

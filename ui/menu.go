@@ -14,7 +14,7 @@ func CreateMainMenu() *tview.List {
 		AddItem("unmineable solXEN (0.0.0)", "", 0, nil).
 		AddItem(WALLET_STRING, "", 'a', nil).
 		AddItem(SOLXEN_CPU_MINER_STRING, "", 'b', nil).
-		AddItem(SOLXEN_GPU_MINER_STRING, "", 'c', nil).
+		// AddItem(SOLXEN_GPU_MINER_STRING, "", 'c', nil).//TEMP DISABLED
 		AddItem("QUIT(Press 'q' 4 times)", "", 'q', nil).
 		AddItem("", "by @xen_artist", 0, nil)
 
