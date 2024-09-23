@@ -1,6 +1,10 @@
 package ui
 
 import (
+	"fmt"
+	"time"
+	"xoon/utils"
+
 	"github.com/rivo/tview"
 )
 
@@ -31,9 +35,52 @@ func CreateDashboardFlex(title string, app *tview.Application) *tview.Flex {
 	dashboardFlex := tview.NewFlex().
 		SetDirection(tview.FlexColumn)
 
-	// Add placeholder text for now
-	placeholder := tview.NewTextView().SetText("Dashboard for " + title)
-	dashboardFlex.AddItem(placeholder, 0, 1, false)
+	// Create a new text view for Unmineable info
+	unmineableInfoView := tview.NewTextView().
+		SetDynamicColors(true).
+		SetRegions(true).
+		SetWrap(false)
+
+	// Function to update Unmineable info
+	updateUnmineableInfo := func() {
+		go func() {
+			info, err := utils.GetUnmineableInfo(utils.GLOBAL_PUBLIC_KEY, "SOL")
+			if err != nil {
+				app.QueueUpdateDraw(func() {
+					unmineableInfoView.SetText(fmt.Sprintf("Error: %v", err))
+				})
+				return
+			}
+
+			autoPay := "Off"
+			if info.Data.AutoPay {
+				autoPay = "On"
+			}
+
+			infoText := fmt.Sprintf("Balance:%s %s | Auto Pay: %s | Pay On: %s %s",
+				info.Data.Balance, info.Data.Network,
+				autoPay,
+				info.Data.PaymentThreshold, info.Data.Network)
+
+			app.QueueUpdateDraw(func() {
+				unmineableInfoView.SetText(infoText)
+			})
+		}()
+	}
+
+	// Initial update
+	updateUnmineableInfo()
+
+	// Set up a ticker to update every 10 minutes
+	go func() {
+		ticker := time.NewTicker(10 * time.Minute)
+		for range ticker.C {
+			updateUnmineableInfo()
+		}
+	}()
+
+	// Add the Unmineable info view to the flex
+	dashboardFlex.AddItem(unmineableInfoView, 0, 1, false)
 
 	dashboardFlex.SetBorder(true).SetTitle(title + " Dashboard")
 	return dashboardFlex

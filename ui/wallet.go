@@ -57,6 +57,8 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 			} else {
 				utils.LogMessage(moduleUI.LogView, "Public key copied to clipboard successfully")
 			}
+
+			utils.GetUnmineableInfo(utils.GLOBAL_PUBLIC_KEY, "SOL")
 		}).
 		AddPasswordField("Input password to copy Private Key:", "", 32, '*', nil).
 		AddButton("Copy Private Key", func() {
