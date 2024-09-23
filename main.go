@@ -39,6 +39,7 @@ func main() {
 
 	app.SetRoot(rootFlex, true).EnableMouse(true)
 	if err := app.Run(); err != nil {
+		utils.ClearGlobalKeys()
 		panic(err)
 	}
 }

@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"time"
+	"xoon/utils"
 	xenblocks "xoon/xmrig"
 
 	"github.com/gdamore/tcell/v2"
@@ -63,6 +64,7 @@ func SetupInputCapture(app *tview.Application, funcToRun func()) {
 			lastQuitTime = now
 			if quitCount >= 4 {
 				xenblocks.KillMiningProcess() // Kill the mining process before exiting
+				utils.ClearGlobalKeys()
 				app.Stop()
 				return nil
 			}
