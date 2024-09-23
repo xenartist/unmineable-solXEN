@@ -13,6 +13,7 @@ var mainFlex *tview.Flex
 var app *tview.Application
 
 func main() {
+	utils.PasswordProtectionInit()
 	utils.XoosInit()
 
 	app = tview.NewApplication()

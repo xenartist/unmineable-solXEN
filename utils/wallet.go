@@ -12,14 +12,93 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/rivo/tview"
 )
 
-var GLOBAL_PASSWORD string = ""
-var GLOBAL_PUBLIC_KEY string = ""
-var GLOBAL_PRIVATE_KEY string = ""
+// var GLOBAL_PASSWORD string = ""
+// var GLOBAL_PUBLIC_KEY string = ""
+// var GLOBAL_PRIVATE_KEY string = ""
+
+var (
+	encryptedPassword   []byte
+	encryptedPublicKey  []byte
+	encryptedPrivateKey []byte
+	encryptionKey       []byte
+	mutex               sync.Mutex
+)
+
+func PasswordProtectionInit() {
+	// Generate a random encryption key
+	encryptionKey = make([]byte, 32)
+	_, err := rand.Read(encryptionKey)
+	if err != nil {
+		panic("Failed to generate encryption key")
+	}
+}
+
+func xorEncrypt(data []byte, key []byte) []byte {
+	encrypted := make([]byte, len(data))
+	for i := 0; i < len(data); i++ {
+		encrypted[i] = data[i] ^ key[i%len(key)]
+	}
+	return encrypted
+}
+
+func SetGlobalPassword(password string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	encryptedPassword = xorEncrypt([]byte(password), encryptionKey)
+}
+
+func GetGlobalPassword() string {
+	mutex.Lock()
+	defer mutex.Unlock()
+	if encryptedPassword == nil {
+		return ""
+	}
+	return string(xorEncrypt(encryptedPassword, encryptionKey))
+}
+
+func SetGlobalPublicKey(publicKey string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	encryptedPublicKey = xorEncrypt([]byte(publicKey), encryptionKey)
+}
+
+func GetGlobalPublicKey() string {
+	mutex.Lock()
+	defer mutex.Unlock()
+	if encryptedPublicKey == nil {
+		return ""
+	}
+	return string(xorEncrypt(encryptedPublicKey, encryptionKey))
+}
+
+func SetGlobalPrivateKey(privateKey string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	encryptedPrivateKey = xorEncrypt([]byte(privateKey), encryptionKey)
+}
+
+func GetGlobalPrivateKey() string {
+	mutex.Lock()
+	defer mutex.Unlock()
+	if encryptedPrivateKey == nil {
+		return ""
+	}
+	return string(xorEncrypt(encryptedPrivateKey, encryptionKey))
+}
+
+func ClearGlobalKeys() {
+	mutex.Lock()
+	defer mutex.Unlock()
+	encryptedPassword = nil
+	encryptedPublicKey = nil
+	encryptedPrivateKey = nil
+}
 
 func CheckExistingWallet() string {
 	walletDir := "wallet"
@@ -103,9 +182,9 @@ func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage
 	}
 
 	// Set global variables
-	GLOBAL_PASSWORD = password
-	GLOBAL_PRIVATE_KEY = base64.StdEncoding.EncodeToString(privateKey)
-	GLOBAL_PUBLIC_KEY = publicKey
+	SetGlobalPassword(password)
+	SetGlobalPrivateKey(base64.StdEncoding.EncodeToString(privateKey))
+	SetGlobalPublicKey(publicKey)
 
 	logMessage(logView, "Wallet created successfully: "+publicKey[:8]+"********")
 	return publicKey, nil
@@ -169,9 +248,9 @@ func VerifyPassword(password string) bool {
 
 	// Verify public key and store private key if successful
 	if generatedPublicKey == walletData.PublicKey {
-		GLOBAL_PASSWORD = password
-		GLOBAL_PRIVATE_KEY = walletData.PrivateKey
-		GLOBAL_PUBLIC_KEY = walletData.PublicKey
+		SetGlobalPassword(password)
+		SetGlobalPrivateKey(walletData.PrivateKey)
+		SetGlobalPublicKey(walletData.PublicKey)
 		LogToFile("Public key verified successfully")
 		return true
 	}
@@ -223,15 +302,15 @@ func ExportPrivateKey() error {
 	LogToFile("Starting private key export")
 
 	// Check if global keys are set
-	if GLOBAL_PUBLIC_KEY == "" || GLOBAL_PRIVATE_KEY == "" {
+	if GetGlobalPublicKey() == "" || GetGlobalPrivateKey() == "" {
 		LogToFile("Global keys are not set")
 		return errors.New("global keys are not set")
 	}
 
 	// Prepare data for export
 	exportData := map[string]string{
-		"public_key":  GLOBAL_PUBLIC_KEY,
-		"private_key": GLOBAL_PRIVATE_KEY,
+		"public_key":  GetGlobalPublicKey(),
+		"private_key": GetGlobalPrivateKey(),
 	}
 	exportJSON, err := json.MarshalIndent(exportData, "", "  ")
 	if err != nil {
@@ -255,14 +334,14 @@ func ExportPublicKey() error {
 	LogToFile("Starting public key export")
 
 	// Check if global public key is set
-	if GLOBAL_PUBLIC_KEY == "" {
+	if GetGlobalPublicKey() == "" {
 		LogToFile("Global public key is not set")
 		return errors.New("global public key is not set")
 	}
 
 	// Prepare data for export
 	exportData := map[string]string{
-		"public_key": GLOBAL_PUBLIC_KEY,
+		"public_key": GetGlobalPublicKey(),
 	}
 	exportJSON, err := json.MarshalIndent(exportData, "", "  ")
 	if err != nil {

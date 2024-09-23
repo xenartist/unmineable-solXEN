@@ -23,15 +23,15 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 
 	// Determine the public key display text
 	publicKeyDisplay := ""
-	if utils.GLOBAL_PUBLIC_KEY != "" {
-		publicKeyDisplay = utils.GLOBAL_PUBLIC_KEY[:8] + "********"
+	if utils.GetGlobalPublicKey() != "" {
+		publicKeyDisplay = utils.GetGlobalPublicKey()[:8] + "********"
 	}
 
 	solxengpuForm.AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
 		AddButton("Install Miner", func() { xenblocks.InstallXmrig(app, moduleUI.LogView, utils.LogMessage) }).
 		AddButton("Start Mining", func() {
 			if !xenblocks.IsMining() {
-				publicKey := utils.GLOBAL_PUBLIC_KEY
+				publicKey := utils.GetGlobalPublicKey()
 				xenblocks.StartMining(app, moduleUI.LogView, utils.LogMessage, publicKey)
 			}
 		}).
@@ -57,9 +57,9 @@ func CreateSolXENGPUConfigFlex(app *tview.Application, logView *tview.TextView) 
 }
 
 func UpdateGPUMinerPublicKeyTextView() {
-	if utils.GLOBAL_PUBLIC_KEY == "" {
+	if utils.GetGlobalPublicKey() == "" {
 		solxengpuForm.GetFormItem(0).(*tview.TextView).SetText("")
 	} else {
-		solxengpuForm.GetFormItem(0).(*tview.TextView).SetText(utils.GLOBAL_PUBLIC_KEY[:8] + "********")
+		solxengpuForm.GetFormItem(0).(*tview.TextView).SetText(utils.GetGlobalPublicKey()[:8] + "********")
 	}
 }

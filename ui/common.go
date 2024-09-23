@@ -45,12 +45,12 @@ func CreateDashboardFlex(title string, app *tview.Application) *tview.Flex {
 	// Function to update Unmineable info
 	updateUnmineableInfo := func() {
 		// Check if GLOBAL_PUBLIC_KEY is empty
-		if utils.GLOBAL_PUBLIC_KEY == "" {
+		if utils.GetGlobalPublicKey() == "" {
 			return
 		}
 
 		go func() {
-			info, err := utils.GetUnmineableInfo(utils.GLOBAL_PUBLIC_KEY, "SOL")
+			info, err := utils.GetUnmineableInfo(utils.GetGlobalPublicKey(), "SOL")
 			if err != nil {
 				app.QueueUpdateDraw(func() {
 					unmineableInfoView.SetText(fmt.Sprintf("Error: %v", err))

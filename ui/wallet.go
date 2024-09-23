@@ -36,7 +36,7 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 				// Hide createWalletForm
 				createWalletForm.Clear(true)
 
-				newPublicKey := utils.GLOBAL_PUBLIC_KEY[:8] + "********"
+				newPublicKey := utils.GetGlobalPublicKey()[:8] + "********"
 				app.QueueUpdateDraw(func() {
 					publicKeyTextView := manageWalletForm.GetFormItemByLabel("Public Key").(*tview.TextView)
 					publicKeyTextView.SetText(newPublicKey)
@@ -50,8 +50,8 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 
 	// Determine the public key display text
 	publicKeyDisplay := ""
-	if utils.GLOBAL_PUBLIC_KEY != "" {
-		publicKeyDisplay = utils.GLOBAL_PUBLIC_KEY[:8] + "********"
+	if utils.GetGlobalPublicKey() != "" {
+		publicKeyDisplay = utils.GetGlobalPublicKey()[:8] + "********"
 	}
 
 	manageWalletForm.
@@ -70,7 +70,7 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 			if password == "" {
 				utils.LogMessage(moduleUI.LogView, "Please enter your password to export the private key")
 				return
-			} else if password != utils.GLOBAL_PASSWORD {
+			} else if password != utils.GetGlobalPassword() {
 				utils.LogMessage(moduleUI.LogView, "Incorrect password")
 			} else {
 				err := utils.ExportPrivateKey()
@@ -87,7 +87,7 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 	// Create a flex layout for vertical arrangement
 	walletFlex := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	if utils.GLOBAL_PUBLIC_KEY != "" {
+	if utils.GetGlobalPublicKey() != "" {
 		// If GLOBAL_PUBLIC_KEY is not empty, only add manageWalletForm
 		walletFlex.AddItem(manageWalletForm, 0, 1, true)
 	} else {
