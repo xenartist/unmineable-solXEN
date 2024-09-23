@@ -7,6 +7,8 @@ import (
 	"github.com/rivo/tview"
 )
 
+var solxengpuForm *tview.Form
+
 func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 	var moduleUI = CreateModuleUI("solXEN Miner (GPU)", app)
 
@@ -17,7 +19,7 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 	}
 
 	// Create form
-	form := tview.NewForm()
+	solxengpuForm := tview.NewForm()
 
 	// Determine the public key display text
 	publicKeyDisplay := ""
@@ -25,7 +27,7 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 		publicKeyDisplay = utils.GLOBAL_PUBLIC_KEY[:8] + "********"
 	}
 
-	form.AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
+	solxengpuForm.AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
 		AddButton("Install Miner", func() { xenblocks.InstallXmrig(app, moduleUI.LogView, utils.LogMessage) }).
 		AddButton("Start Mining", func() {
 			if !xenblocks.IsMining() {
@@ -39,7 +41,7 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 			}
 		})
 
-	contentFlex := tview.NewFlex().AddItem(form, 0, 1, true)
+	contentFlex := tview.NewFlex().AddItem(solxengpuForm, 0, 1, true)
 
 	moduleUI.ConfigFlex.AddItem(contentFlex, 0, 1, true)
 
@@ -52,4 +54,12 @@ func CreateSolXENGPUConfigFlex(app *tview.Application, logView *tview.TextView) 
 
 	configFlex.SetBorder(true).SetTitle("solXEN Config")
 	return configFlex
+}
+
+func UpdateGPUMinerPublicKeyTextView() {
+	if utils.GLOBAL_PUBLIC_KEY == "" {
+		solxengpuForm.GetFormItem(0).(*tview.TextView).SetText("")
+	} else {
+		solxengpuForm.GetFormItem(0).(*tview.TextView).SetText(utils.GLOBAL_PUBLIC_KEY[:8] + "********")
+	}
 }
