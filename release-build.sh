@@ -14,12 +14,12 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-BUILD_DIR="xoon"
+BUILD_DIR="unmineable-solXEN"
 
 # Clean up previous build artifacts
 echo "Cleaning up previous build artifacts..."
 rm -rf "$BUILD_DIR"
-rm -f xoon-*.zip xoon-*.tar.gz
+rm -f unmineable-solXEN-*.zip unmineable-solXEN-*.tar.gz
 
 # Define build configurations
 declare -A OS_ARCH=(
@@ -27,7 +27,7 @@ declare -A OS_ARCH=(
     ["windows"]="amd64"
 )
 
-BINARY_NAME="xoon"
+BINARY_NAME="unmineable-solXEN"
 
 echo "Building version: $VERSION"
 
@@ -40,9 +40,9 @@ for OS in "${!OS_ARCH[@]}"; do
     echo "Building for $OS ($ARCH)..."
     
     if [ "$OS" == "windows" ]; then
-        BINARY_NAME="xoon.exe"
+        BINARY_NAME="unmineable-solXEN.exe"
     else
-        BINARY_NAME="xoon"
+        BINARY_NAME="unmineable-solXEN"
     fi
     
     GOOS=$OS GOARCH=$ARCH go build -o "$BUILD_DIR/${BINARY_NAME}"
@@ -53,11 +53,11 @@ for OS in "${!OS_ARCH[@]}"; do
     fi
     
     if [ "$OS" == "windows" ]; then
-        ARCHIVE_NAME="xoon-${VERSION}-${OS}-${ARCH}.zip"
-        (cd "$BUILD_DIR" && zip "../$ARCHIVE_NAME" "${BINARY_NAME}")
+        ARCHIVE_NAME="unmineable-solXEN-${VERSION}-${OS}-${ARCH}.zip"
+        (cd "$BUILD_DIR/.." && zip -r "$ARCHIVE_NAME" "unmineable-solXEN")
     else
-        ARCHIVE_NAME="xoon-${VERSION}-${OS}-${ARCH}.tar.gz"
-        tar -czvf "$ARCHIVE_NAME" -C "$BUILD_DIR" "${BINARY_NAME}"
+        ARCHIVE_NAME="unmineable-solXEN-${VERSION}-${OS}-${ARCH}.tar.gz"
+        tar -czvf "$ARCHIVE_NAME" -C "$BUILD_DIR/.." "unmineable-solXEN"
     fi
     
     echo "Archive created: $ARCHIVE_NAME"
