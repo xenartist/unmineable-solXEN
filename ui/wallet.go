@@ -56,7 +56,7 @@ func CreateWalletUI(app *tview.Application) ModuleUI {
 
 	manageWalletForm.
 		AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
-		AddPasswordField("Input password to export wallet:", "", 32, '*', nil).
+		AddPasswordField("Input password to export private key:", "", 32, '*', nil).
 		AddButton("Export Public Key", func() {
 			err := utils.ExportPublicKey()
 			if err != nil {
