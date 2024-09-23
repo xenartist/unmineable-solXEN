@@ -3,3 +3,5 @@
 /xmrigMiner
 debug.log
 /wallet.bkup
+*.gz
+*.zip
