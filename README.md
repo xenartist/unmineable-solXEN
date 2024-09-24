@@ -12,7 +12,8 @@ GUI (UI in terminal/console) mining [solXEN](https://solscan.io/token/6f8deE148n
 - [x] Mining SOL through [unmineable.com](https://unmineable.com/)
 - [x] Swap SOL to [solXEN](https://solscan.io/token/6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7) through [jup.ag](https://jup.ag/) automatically
 - [x] Swap SOL to [OG solXEN](https://solscan.io/token/EEqrab5tdnVdZv7a4AUAvGehDAtM8gWd7szwfyYbmGkM) through [jup.ag](https://jup.ag/) automatically
-- [x] Mouse click mining supported well
+- [x] Mouse-click mining supported well
+- [x] No SOL deposit required, just public key
 
 ## How to use unmineable-solXEN
 
