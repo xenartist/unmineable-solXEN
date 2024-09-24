@@ -1,5 +1,75 @@
 # unmineable-solXEN
 
+GUI (UI in terminal/console) mining [solXEN](https://solscan.io/token/6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7) & [OG solXEN](https://solscan.io/token/EEqrab5tdnVdZv7a4AUAvGehDAtM8gWd7szwfyYbmGkM) by using CPU & GPU through [unmineable.com](https://unmineable.com/) and [jup.ag](https://jup.ag/)
+
 ![GitHub Repo stars](https://img.shields.io/github/stars/xenartist/unmineable-solXEN?style=flat)
  ![GitHub forks](https://img.shields.io/github/forks/xenartist/unmineable-solXEN?style=flat)
  ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/xenartist/unmineable-solXEN/total) ![GitHub License](https://img.shields.io/github/license/xenartist/unmineable-solXEN)
+
+## Features
+
+- [x] Both CPU & GPU mining are supported
+- [x] Mining SOL through [unmineable.com](https://unmineable.com/)
+- [x] Swap SOL to [solXEN](https://solscan.io/token/6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7) through [jup.ag](https://jup.ag/) automatically
+- [x] Swap SOL to [OG solXEN](https://solscan.io/token/EEqrab5tdnVdZv7a4AUAvGehDAtM8gWd7szwfyYbmGkM) through [jup.ag](https://jup.ag/) automatically
+- [x] Mouse click mining supported well
+
+## How to use unmineable-solXEN
+
+### For Windows
+1. Download the latest version of unmineable-solXEN from the [releases](https://github.com/xenartist/unmineable-solXEN/releases) page.
+2. Extract the zip file and enter the folder.
+3. Run the `unmineable-solXEN.exe` file.
+4. Create a new wallet.
+5. Start mining.
+
+### For Linux
+1. Download the latest version of unmineable-solXEN from the [releases](https://github.com/xenartist/unmineable-solXEN/releases) page.
+```
+wget https://github.com/xenartist/unmineable-solXEN/releases/download/some_version/unmineable-solXEN-linux-x64.tar.gz
+```
+2. Extract the tar.gz file.
+```
+tar -xzf unmineable-solXEN-linux-x64.tar.gz
+
+cd unmineable-solXEN
+```
+3. Run the `unmineable-solXEN` file.
+```
+./unmineable-solXEN
+```
+4. Create a new wallet.
+5. Start mining.
+
+## solXENwallet
+
+solXENwallet is encrypted by the password you set, public key and private key are both encrypted in the wallet file.
+
+## Exporting the public key
+
+You can export the public key by clicking the `Export Public Key` button.
+
+This public key is used to mine SOL and receive the swaped solXEN.
+
+## Exporting the private key
+
+You can export the private key by clicking the `Export Private Key` button. (need to enter the password you set)
+
+This private key in program (encrypted in memory as well) is used to sign the transactions to swap mined SOL to solXEN and OG solXEN automatically.
+
+## unmineable.com mining status
+
+You can check the mining status here https://unmineable.com/address/public_key?coin=SOL (replace `public_key` with your public key)
+
+NOTE: Please ensure that the **"Auto Payout"** is enabled on the unmineable.com website, otherwise you won't be able to receive the mined SOL automatically.
+
+![unmineable-auto-payout](https://github.com/xenartist/unmineable-solXEN/blob/main/screenshot/unmineable-com-auto-payout.png)
+
+## Credits
+
+unmineable-solXEN: [xenartist](https://github.com/xenartist)
+
+## License
+
+gpl-3.0
+
