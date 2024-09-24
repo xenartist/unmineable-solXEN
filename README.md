@@ -67,7 +67,7 @@ NOTE: Please ensure that the **"Auto Payout"** is enabled on the unmineable.com 
 
 ## Credits
 
-unmineable-solXEN: [xenartist](https://github.com/xenartist)
+unmineable-solXEN: [xen_artist](https://x.com/xen_artist)
 
 ## License
 
