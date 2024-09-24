@@ -63,7 +63,7 @@ You can check the mining status here https://unmineable.com/address/public_key?c
 
 NOTE: Please ensure that the **"Auto Payout"** is enabled on the unmineable.com website, otherwise you won't be able to receive the mined SOL automatically.
 
-![unmineable-auto-payout](https://github.com/xenartist/unmineable-solXEN/blob/main/screenshot/unmineable-com-auto-payout.png)
+![unmineable-auto-payout](https://github.com/xenartist/unmineable-solXEN/blob/main/screenshot/unmineable-auto-payout.png)
 
 ## Credits
 
