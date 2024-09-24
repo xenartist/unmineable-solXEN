@@ -23,11 +23,11 @@ import (
 // var GLOBAL_PRIVATE_KEY string = ""
 
 var (
-	encryptedPassword   []byte
-	encryptedPublicKey  []byte
-	encryptedPrivateKey []byte
-	encryptionKey       []byte
-	mutex               sync.Mutex
+	encryptedPassword  []byte
+	encryptedPublicKey []byte
+	// encryptedPrivateKey []byte
+	encryptionKey []byte
+	mutex         sync.Mutex
 )
 
 func PasswordProtectionInit() {
@@ -77,27 +77,27 @@ func GetGlobalPublicKey() string {
 	return string(xorEncrypt(encryptedPublicKey, encryptionKey))
 }
 
-func SetGlobalPrivateKey(privateKey string) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	encryptedPrivateKey = xorEncrypt([]byte(privateKey), encryptionKey)
-}
+// func SetGlobalPrivateKey(privateKey string) {
+// 	mutex.Lock()
+// 	defer mutex.Unlock()
+// 	encryptedPrivateKey = xorEncrypt([]byte(privateKey), encryptionKey)
+// }
 
-func GetGlobalPrivateKey() string {
-	mutex.Lock()
-	defer mutex.Unlock()
-	if encryptedPrivateKey == nil {
-		return ""
-	}
-	return string(xorEncrypt(encryptedPrivateKey, encryptionKey))
-}
+// func GetGlobalPrivateKey() string {
+// 	mutex.Lock()
+// 	defer mutex.Unlock()
+// 	if encryptedPrivateKey == nil {
+// 		return ""
+// 	}
+// 	return string(xorEncrypt(encryptedPrivateKey, encryptionKey))
+// }
 
 func ClearGlobalKeys() {
 	mutex.Lock()
 	defer mutex.Unlock()
 	encryptedPassword = nil
 	encryptedPublicKey = nil
-	encryptedPrivateKey = nil
+	// encryptedPrivateKey = nil
 }
 
 func CheckExistingWallet() string {
@@ -183,7 +183,7 @@ func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage
 
 	// Set global variables
 	SetGlobalPassword(password)
-	SetGlobalPrivateKey(base64.StdEncoding.EncodeToString(privateKey))
+	// SetGlobalPrivateKey(base64.StdEncoding.EncodeToString(privateKey))
 	SetGlobalPublicKey(publicKey)
 
 	logMessage(logView, "Wallet created successfully: "+publicKey[:8]+"********")
@@ -249,7 +249,7 @@ func VerifyPassword(password string) bool {
 	// Verify public key and store private key if successful
 	if generatedPublicKey == walletData.PublicKey {
 		SetGlobalPassword(password)
-		SetGlobalPrivateKey(walletData.PrivateKey)
+		// SetGlobalPrivateKey(walletData.PrivateKey)
 		SetGlobalPublicKey(walletData.PublicKey)
 		LogToFile("Public key verified successfully")
 		return true
@@ -301,16 +301,61 @@ func decrypt(ciphertext []byte, password []byte) ([]byte, error) {
 func ExportPrivateKey() error {
 	LogToFile("Starting private key export")
 
-	// Check if global keys are set
-	if GetGlobalPublicKey() == "" || GetGlobalPrivateKey() == "" {
-		LogToFile("Global keys are not set")
-		return errors.New("global keys are not set")
+	// Check if global password is set
+	password := GetGlobalPassword()
+	if password == "" {
+		LogToFile("Global password is not set")
+		return errors.New("global password is not set")
+	}
+
+	// Find the wallet file
+	walletDir := "wallet"
+	files, err := os.ReadDir(walletDir)
+	if err != nil {
+		LogToFile("Error reading wallet directory: " + err.Error())
+		return err
+	}
+
+	var walletFile string
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".solXENwallet") {
+			walletFile = filepath.Join(walletDir, file.Name())
+			break
+		}
+	}
+
+	if walletFile == "" {
+		LogToFile("Wallet file not found")
+		return errors.New("wallet file not found")
+	}
+
+	// Read and decrypt the wallet file
+	encryptedData, err := os.ReadFile(walletFile)
+	if err != nil {
+		LogToFile("Error reading wallet file: " + err.Error())
+		return err
+	}
+
+	decryptedData, err := decrypt(encryptedData, []byte(password))
+	if err != nil {
+		LogToFile("Error decrypting wallet file: " + err.Error())
+		return err
+	}
+
+	var walletData struct {
+		PublicKey  string `json:"public_key"`
+		PrivateKey string `json:"private_key"`
+	}
+	err = json.Unmarshal(decryptedData, &walletData)
+	if err != nil {
+		LogToFile("Error unmarshalling wallet data: " + err.Error())
+		return err
 	}
 
 	// Prepare data for export
 	exportData := map[string]string{
-		"public_key":  GetGlobalPublicKey(),
-		"private_key": GetGlobalPrivateKey(),
+		"public_key":  walletData.PublicKey,
+		"private_key": walletData.PrivateKey,
 	}
 	exportJSON, err := json.MarshalIndent(exportData, "", "  ")
 	if err != nil {
@@ -319,7 +364,7 @@ func ExportPrivateKey() error {
 	}
 
 	// Save export data to file
-	exportFilePath := filepath.Join("wallet", "solXEN-private-key-exported.json")
+	exportFilePath := filepath.Join(walletDir, "solXEN-private-key-exported.json")
 	err = os.WriteFile(exportFilePath, exportJSON, 0600)
 	if err != nil {
 		LogToFile("Error saving export data: " + err.Error())
