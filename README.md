@@ -19,8 +19,12 @@ GUI (UI in terminal/console) mining [solXEN](https://solscan.io/token/6f8deE148n
 
 ### For Windows
 1. Download the latest version of unmineable-solXEN from the [releases](https://github.com/xenartist/unmineable-solXEN/releases) page.
-2. Extract the zip file and enter the folder.
-3. Run the `unmineable-solXEN.exe` file.
+2. Extract the zip file.
+3. Open the terminal, enter the folder and run the `unmineable-solXEN.exe` file.
+```
+cd unmineable-solXEN
+.\unmineable-solXEN.exe
+```
 4. Create a new wallet.
 5. Install the miner.
 6. Start mining.
