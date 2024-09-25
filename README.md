@@ -22,7 +22,8 @@ GUI (UI in terminal/console) mining [solXEN](https://solscan.io/token/6f8deE148n
 2. Extract the zip file and enter the folder.
 3. Run the `unmineable-solXEN.exe` file.
 4. Create a new wallet.
-5. Start mining.
+5. Install the miner.
+6. Start mining.
 
 ### For Linux
 1. Download the latest version of unmineable-solXEN from the [releases](https://github.com/xenartist/unmineable-solXEN/releases) page.
@@ -40,7 +41,20 @@ cd unmineable-solXEN
 ./unmineable-solXEN
 ```
 4. Create a new wallet.
-5. Start mining.
+5. Install the miner.
+6. Start mining.
+
+### For Mac
+1. Download the latest version of unmineable-solXEN from the [releases](https://github.com/xenartist/unmineable-solXEN/releases) page.
+2. Extract the tar.gz file.
+3. Open the terminal, enter the folder and run the `unmineable-solXEN` file.
+```
+cd unmineable-solXEN
+./unmineable-solXEN
+```
+4. Create a new wallet.
+5. Install the miner.
+6. Start mining.
 
 ## solXENwallet
 
