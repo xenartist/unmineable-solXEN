@@ -25,6 +25,8 @@ rm -f unmineable-solXEN-*.zip unmineable-solXEN-*.tar.gz
 declare -A OS_ARCH=(
     ["linux"]="amd64"
     ["windows"]="amd64"
+    ["darwin_amd64"]="darwin amd64"
+    ["darwin_arm64"]="darwin arm64"
 )
 
 BINARY_NAME="unmineable-solXEN"
@@ -35,8 +37,15 @@ echo "Building version: $VERSION"
 mkdir -p "$BUILD_DIR"
 
 # Build for each OS and architecture
-for OS in "${!OS_ARCH[@]}"; do
-    ARCH=${OS_ARCH[$OS]}
+for OS_ARCH_KEY in "${!OS_ARCH[@]}"; do
+    IFS=' ' read -r OS ARCH <<< "${OS_ARCH[$OS_ARCH_KEY]}"
+    
+    # Handle cases where ARCH is empty (for linux and windows)
+    if [ -z "$ARCH" ]; then
+        ARCH=$OS
+        OS=${OS_ARCH_KEY}
+    fi
+    
     echo "Building for $OS ($ARCH)..."
     
     if [ "$OS" == "windows" ]; then
@@ -48,7 +57,7 @@ for OS in "${!OS_ARCH[@]}"; do
     GOOS=$OS GOARCH=$ARCH go build -o "$BUILD_DIR/${BINARY_NAME}"
     
     if [ $? -ne 0 ]; then
-        echo "Build failed for $OS"
+        echo "Build failed for $OS $ARCH"
         exit 1
     fi
     
