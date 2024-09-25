@@ -14,6 +14,7 @@ var app *tview.Application
 
 func main() {
 	utils.PasswordProtectionInit()
+	utils.InitJupiter()
 	utils.XoosInit()
 
 	app = tview.NewApplication()

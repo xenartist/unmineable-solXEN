@@ -78,15 +78,16 @@ func CreateDashboardFlex(title string, app *tview.Application) *tview.Flex {
 			}
 
 			// Get OG solXEN equivalent
-			ogSolXENAmount, err := utils.GetTokenExchangeAmount(balance, utils.OGSolXEN)
-			if err != nil {
-				utils.LogToFile(fmt.Sprintf("Error getting OG solXEN amount: %v", err))
-				ogSolXENAmount = 0 // Set to 0 if there's an error
-			}
-
-			infoText := fmt.Sprintf("Balance:%s %s (%.2f solXEN | %.2f OG solXEN) | AutoPay: %s | PayOn: %s %s",
+			// ogSolXENAmount, err := utils.GetTokenExchangeAmount(balance, utils.OGSolXEN)
+			// if err != nil {
+			// 	utils.LogToFile(fmt.Sprintf("Error getting OG solXEN amount: %v", err))
+			// 	ogSolXENAmount = 0 // Set to 0 if there's an error
+			// }
+			infoText := fmt.Sprintf("Balance:%s %s (%.2f solXEN) | AutoPay: %s | PayOn: %s %s",
+				// infoText := fmt.Sprintf("Balance:%s %s (%.2f solXEN | %.2f OG solXEN) | AutoPay: %s | PayOn: %s %s",
 				info.Data.Balance, info.Data.Network,
-				solXENAmount, ogSolXENAmount,
+				// solXENAmount, ogSolXENAmount,
+				solXENAmount,
 				autoPay,
 				info.Data.PaymentThreshold, info.Data.Network)
 
