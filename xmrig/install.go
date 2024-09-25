@@ -113,6 +113,14 @@ func downloadXmrig(logView *tview.TextView, logMessage utils.LogMessageFunc) (st
 	if runtime.GOOS == "windows" {
 		url = "https://github.com/xmrig/xmrig/releases/download/v6.22.0/xmrig-6.22.0-msvc-win64.zip"
 		fileName = "xmrig-6.22.0-msvc-win64.zip"
+	} else if runtime.GOOS == "darwin" {
+		if runtime.GOARCH == "amd64" {
+			url = "https://github.com/xmrig/xmrig/releases/download/v6.22.0/xmrig-6.22.0-macos-x64.tar.gz"
+			fileName = "xmrig-6.22.0-macos-x64.tar.gz"
+		} else if runtime.GOARCH == "arm64" {
+			url = "https://github.com/xmrig/xmrig/releases/download/v6.22.0/xmrig-6.22.0-macos-arm64.tar.gz"
+			fileName = "xmrig-6.22.0-macos-arm64.tar.gz"
+		}
 	} else {
 		url = "https://github.com/xmrig/xmrig/releases/download/v6.22.0/xmrig-6.22.0-linux-static-x64.tar.gz"
 		fileName = "xmrig-6.22.0-linux-static-x64.tar.gz"
