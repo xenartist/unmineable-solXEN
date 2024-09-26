@@ -23,8 +23,9 @@ rm -f unmineable-solXEN-*.zip unmineable-solXEN-*.tar.gz
 
 # Define build configurations
 declare -A OS_ARCH=(
-    ["linux"]="amd64"
-    ["windows"]="amd64"
+    ["linux_amd64"]="linux amd64"
+    ["linux_arm64"]="linux arm64"
+    ["windows"]="windows amd64"
     ["darwin_amd64"]="darwin amd64"
     ["darwin_arm64"]="darwin arm64"
 )

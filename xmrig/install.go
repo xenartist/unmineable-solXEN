@@ -2,6 +2,8 @@ package xenblocks
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -122,21 +124,42 @@ func downloadXmrig(logView *tview.TextView, logMessage utils.LogMessageFunc) (st
 			fileName = "xmrig-6.22.0-macos-arm64.tar.gz"
 		}
 	} else {
-		url = "https://github.com/xmrig/xmrig/releases/download/v6.22.0/xmrig-6.22.0-linux-static-x64.tar.gz"
-		fileName = "xmrig-6.22.0-linux-static-x64.tar.gz"
+		if runtime.GOARCH == "amd64" {
+			url = "https://github.com/xmrig/xmrig/releases/download/v6.22.0/xmrig-6.22.0-linux-static-x64.tar.gz"
+			fileName = "xmrig-6.22.0-linux-static-x64.tar.gz"
+		} else if runtime.GOARCH == "arm64" {
+			url = "https://github.com/xenartist/xmrig/releases/download/v6.22.0/xmrig-6.22.0-linux-static-arm64.tar.gz"
+			fileName = "xmrig-6.22.0-linux-static-arm64.tar.gz"
+		}
 	}
 
 	// Construct the full file path
 	filePath := filepath.Join(utils.GetExecutablePath(), XMRIG_MINER_DIR, fileName)
 
-	// Prepare the curl command
-	cmd := exec.Command("curl", "-L", "-o", filePath, url)
-
-	// Capture the command output
-	output, err := cmd.CombinedOutput()
+	// Download the file
+	logMessage(logView, fmt.Sprintf("Downloading file from %s", url))
+	resp, err := http.Get(url)
 	if err != nil {
-		logMessage(logView, fmt.Sprintf("Error downloading file: %v\nOutput: %s", err, string(output)))
-		return "", err
+		logMessage(logView, fmt.Sprintf("Error downloading file: %v", err))
+		return "", fmt.Errorf("failed to download file: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	logMessage(logView, fmt.Sprintf("Creating file: %s", filePath))
+	out, err := os.Create(filePath)
+	if err != nil {
+		logMessage(logView, fmt.Sprintf("Error creating file: %v", err))
+		return "", fmt.Errorf("failed to create file: %v", err)
+	}
+	defer out.Close()
+
+	// Write the body to file
+	logMessage(logView, "Saving downloaded content to file")
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		logMessage(logView, fmt.Sprintf("Error saving file: %v", err))
+		return "", fmt.Errorf("failed to save file: %v", err)
 	}
 
 	logMessage(logView, fmt.Sprintf("File downloaded successfully to: %s", filePath))
