@@ -23,7 +23,7 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 	isMining = true
 
 	go func() {
-		var xenblocksMinerPath = filepath.Join(utils.GLOBAL_WORK_DIR, XMRIG_MINER_DIR)
+		var xenblocksMinerPath = filepath.Join(utils.GetExecutablePath(), XMRIG_MINER_DIR)
 
 		var err = os.Chdir(xenblocksMinerPath)
 		if err != nil {

@@ -18,7 +18,7 @@ const (
 
 // ReadConfigFile reads the content of config.txt
 func ReadConfigFile(logView *tview.TextView, logMessage utils.LogMessageFunc) (string, error) {
-	configPath := filepath.Join(utils.GLOBAL_WORK_DIR, XMRIG_MINER_DIR, CONFIG_FILE_NAME)
+	configPath := filepath.Join(utils.GetExecutablePath(), XMRIG_MINER_DIR, CONFIG_FILE_NAME)
 	logMessage(logView, "Debug: ReadConfigFile from "+configPath)
 	content, err := os.ReadFile(configPath)
 	if err != nil {
@@ -31,7 +31,7 @@ func ReadConfigFile(logView *tview.TextView, logMessage utils.LogMessageFunc) (s
 
 // WriteConfigFile writes or updates the content of config.txt
 func WriteConfigFile(content string, logView *tview.TextView, logMessage utils.LogMessageFunc) error {
-	configPath := filepath.Join(utils.GLOBAL_WORK_DIR, XMRIG_MINER_DIR, CONFIG_FILE_NAME)
+	configPath := filepath.Join(utils.GetExecutablePath(), XMRIG_MINER_DIR, CONFIG_FILE_NAME)
 	var err = os.WriteFile(configPath, []byte(content), 0644)
 	if err != nil {
 		logMessage(logView, "Error writing config file: "+err.Error())
@@ -43,7 +43,7 @@ func WriteConfigFile(content string, logView *tview.TextView, logMessage utils.L
 
 // CreateXenblocksMinerDir creates the xenblocksMiner directory and config file if they don't exist
 func CreateXmrigMinerDir(logView *tview.TextView, logMessage utils.LogMessageFunc) error {
-	xmrigMinerPath := filepath.Join(utils.GLOBAL_WORK_DIR, XMRIG_MINER_DIR)
+	xmrigMinerPath := filepath.Join(utils.GetExecutablePath(), XMRIG_MINER_DIR)
 	if _, err := os.Stat(xmrigMinerPath); os.IsNotExist(err) {
 		err = os.Mkdir(xmrigMinerPath, 0755)
 		if err != nil {
@@ -99,7 +99,7 @@ func isXmrigInstalled(logView *tview.TextView, logMessage utils.LogMessageFunc) 
 		executableName = "xmrig"
 	}
 
-	executablePath := filepath.Join(utils.GLOBAL_WORK_DIR, XMRIG_MINER_DIR, executableName)
+	executablePath := filepath.Join(utils.GetExecutablePath(), XMRIG_MINER_DIR, executableName)
 	if _, err := os.Stat(executablePath); err == nil {
 		logMessage(logView, "XenblocksMiner is already installed. No need to install again.")
 		return true
@@ -127,7 +127,7 @@ func downloadXmrig(logView *tview.TextView, logMessage utils.LogMessageFunc) (st
 	}
 
 	// Construct the full file path
-	filePath := filepath.Join(utils.GLOBAL_WORK_DIR, XMRIG_MINER_DIR, fileName)
+	filePath := filepath.Join(utils.GetExecutablePath(), XMRIG_MINER_DIR, fileName)
 
 	// Prepare the curl command
 	cmd := exec.Command("curl", "-L", "-o", filePath, url)

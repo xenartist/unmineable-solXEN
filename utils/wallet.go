@@ -101,7 +101,7 @@ func ClearGlobalKeys() {
 }
 
 func CheckExistingWallet() string {
-	walletDir := filepath.Join(getExecutablePath(), "wallet")
+	walletDir := filepath.Join(GetExecutablePath(), "wallet")
 
 	// Check if wallet directory exists
 	if _, err := os.Stat(walletDir); os.IsNotExist(err) {
@@ -126,7 +126,7 @@ func CheckExistingWallet() string {
 
 func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage LogMessageFunc, password string) (string, error) {
 	// Check for existing wallet
-	files, err := os.ReadDir(filepath.Join(getExecutablePath(), "wallet"))
+	files, err := os.ReadDir(filepath.Join(GetExecutablePath(), "wallet"))
 	if err != nil && !os.IsNotExist(err) {
 		logMessage(logView, "Error reading wallet directory: "+err.Error())
 		return "", err
@@ -194,7 +194,7 @@ func VerifyPassword(password string) bool {
 	LogToFile("Starting password verification for public key")
 
 	// Check for existing wallet
-	files, err := os.ReadDir(filepath.Join(getExecutablePath(), "wallet"))
+	files, err := os.ReadDir(filepath.Join(GetExecutablePath(), "wallet"))
 	if err != nil && !os.IsNotExist(err) {
 		LogToFile("Error reading wallet directory: " + err.Error())
 		return false
@@ -309,7 +309,7 @@ func ExportPrivateKey() error {
 	}
 
 	// Find the wallet file
-	walletDir := filepath.Join(getExecutablePath(), "wallet")
+	walletDir := filepath.Join(GetExecutablePath(), "wallet")
 	files, err := os.ReadDir(walletDir)
 	if err != nil {
 		LogToFile("Error reading wallet directory: " + err.Error())
