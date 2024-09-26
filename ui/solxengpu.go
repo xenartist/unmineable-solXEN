@@ -27,12 +27,24 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 		publicKeyDisplay = utils.GetGlobalPublicKey()[:8] + "********"
 	}
 
+	var selectedAlgorithm, selectedPort, workerName string
+
 	solxengpuForm.AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
+		AddDropDown("Mining Algorithm", []string{"GhostRider", "RandomX"}, 0, func(option string, index int) {
+			selectedAlgorithm = option
+		}).
+		AddDropDown("Port", []string{"3333", "13333", "80", "443"}, 0, func(option string, index int) {
+			selectedPort = option
+		}).
+		AddInputField("Worker Name", "xoon", 10, nil, func(text string) {
+			workerName = text
+		}).
 		AddButton("Install Miner", func() { xenblocks.InstallXmrig(app, moduleUI.LogView, utils.LogMessage) }).
 		AddButton("Start Mining", func() {
 			if !xenblocks.IsMining() {
 				publicKey := utils.GetGlobalPublicKey()
-				xenblocks.StartMining(app, moduleUI.LogView, utils.LogMessage, publicKey)
+				xenblocks.StartMining(app, moduleUI.LogView, utils.LogMessage,
+					publicKey, selectedAlgorithm, selectedPort, workerName)
 			}
 		}).
 		AddButton("Stop Mining", func() {

@@ -18,7 +18,8 @@ import (
 
 var isMining bool = false
 
-func StartMining(app *tview.Application, logView *tview.TextView, logMessage utils.LogMessageFunc, publicKey string) {
+func StartMining(app *tview.Application, logView *tview.TextView, logMessage utils.LogMessageFunc,
+	publicKey string, selectedAlgorithm string, selectedPort string, workerName string) {
 
 	isMining = true
 
