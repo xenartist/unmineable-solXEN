@@ -169,13 +169,13 @@ func CreateNewWallet(app *tview.Application, logView *tview.TextView, logMessage
 
 	// Save encrypted data to file
 	logMessage(logView, "Saving encrypted data to file...")
-	err = os.MkdirAll("wallet", 0700)
+	err = os.MkdirAll(filepath.Join(GetExecutablePath(), "wallet"), 0700)
 	if err != nil {
 		logMessage(logView, "Error creating wallet directory: "+err.Error())
 		return "", err
 	}
 	fileName := fmt.Sprintf("%s.solXENwallet", publicKey[:8])
-	err = os.WriteFile(filepath.Join("wallet", fileName), ciphertext, 0600)
+	err = os.WriteFile(filepath.Join(GetExecutablePath(), "wallet", fileName), ciphertext, 0600)
 	if err != nil {
 		logMessage(logView, "Error saving encrypted data: "+err.Error())
 		return "", err
