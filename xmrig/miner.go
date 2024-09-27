@@ -18,6 +18,12 @@ import (
 
 var isMining bool = false
 
+// CPU algorithms
+var CPUAlgorithms = []string{"GhostRider", "RandomX"}
+
+// Mining ports
+var MiningPorts = []string{"3333", "13333", "80", "443"}
+
 func StartMining(app *tview.Application, logView *tview.TextView, logMessage utils.LogMessageFunc,
 	publicKey string, selectedAlgorithm string, selectedPort string, workerName string) {
 
@@ -32,11 +38,32 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 			return
 		}
 
-		// Create the command
+		// Set algorithm and host based on selectedAlgorithm
+		var algorithm, host string
+		switch selectedAlgorithm {
+		case "GhostRider":
+			algorithm = "gr"
+			host = "ghostrider.unmineable.com"
+		case "RandomX":
+			algorithm = "rx"
+			host = "rx.unmineable.com"
+		default:
+			// Default to GhostRider if unknown algorithm is provided
+			algorithm = "gr"
+			host = "ghostrider.unmineable.com"
+		}
+
+		// Construct the mining address
+		miningAddress := host + ":" + selectedPort
+		if selectedPort == "443" {
+			miningAddress = "stratum+ssl://" + miningAddress
+		}
+
+		// Construct the arguments slice
 		args := []string{
-			"-a", "gr",
-			"-o", "ghostrider.unmineable.com:3333",
-			"-u", fmt.Sprintf("SOL:%s.xoon#plxp-imd8", publicKey),
+			"-a", algorithm,
+			"-o", miningAddress,
+			"-u", fmt.Sprintf("SOL:%s.%s#plxp-imd8", publicKey, workerName),
 			"-p", "x",
 		}
 

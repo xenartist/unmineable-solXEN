@@ -394,8 +394,15 @@ func ExportPublicKey() error {
 		return err
 	}
 
+	walletDir := filepath.Join(GetExecutablePath(), "wallet")
+
+	// Check if wallet directory exists
+	if _, err := os.Stat(walletDir); os.IsNotExist(err) {
+		return err
+	}
+
 	// Save export data to file
-	exportFilePath := filepath.Join("wallet", "solXEN-public-key-exported.json")
+	exportFilePath := filepath.Join(walletDir, "solXEN-public-key-exported.json")
 	err = os.WriteFile(exportFilePath, exportJSON, 0600)
 	if err != nil {
 		LogToFile("Error saving export data: " + err.Error())
