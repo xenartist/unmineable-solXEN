@@ -13,9 +13,9 @@ type UnmineableInfo struct {
 	PaymentThreshold string
 	AutoPay          bool
 	Coin             string
-	Past24hRewarded  string
-	Past7dRewarded   string
-	Past30dRewarded  string
+	Past24h          string
+	Past7d           string
+	Past30d          string
 }
 
 var (
@@ -83,9 +83,9 @@ func GetUnmineableInfo(publicKey string, coin string) (*UnmineableInfo, error) {
 			PaymentThreshold string `json:"payment_threshold"`
 			Coin             string `json:"coin"`
 			Rewarded         struct {
-				Past24hRewarded string `json:"past24h"`
-				Past7dRewarded  string `json:"past7d"`
-				Past30dRewarded string `json:"past30d"`
+				Past24h string `json:"past_24h"`
+				Past7d  string `json:"past_7d"`
+				Past30d string `json:"past_30d"`
 			} `json:"rewarded"`
 		} `json:"data"`
 	}
@@ -99,9 +99,9 @@ func GetUnmineableInfo(publicKey string, coin string) (*UnmineableInfo, error) {
 	unmineableInfo.Balance = unmineableStatsResp.Data.Balance
 	unmineableInfo.PaymentThreshold = unmineableStatsResp.Data.PaymentThreshold
 	unmineableInfo.Coin = unmineableStatsResp.Data.Coin
-	unmineableInfo.Past24hRewarded = unmineableStatsResp.Data.Rewarded.Past24hRewarded
-	unmineableInfo.Past7dRewarded = unmineableStatsResp.Data.Rewarded.Past7dRewarded
-	unmineableInfo.Past30dRewarded = unmineableStatsResp.Data.Rewarded.Past30dRewarded
+	unmineableInfo.Past24h = unmineableStatsResp.Data.Rewarded.Past24h
+	unmineableInfo.Past7d = unmineableStatsResp.Data.Rewarded.Past7d
+	unmineableInfo.Past30d = unmineableStatsResp.Data.Rewarded.Past30d
 
 	LogToFile(fmt.Sprintf("Fetched Unmineable Info: %+v", unmineableInfo))
 
