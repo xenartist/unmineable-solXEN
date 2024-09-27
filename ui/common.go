@@ -59,12 +59,12 @@ func CreateDashboardFlex(title string, app *tview.Application) *tview.Flex {
 			}
 
 			autoPay := "Off"
-			if info.Data.AutoPay {
+			if info.AutoPay {
 				autoPay = "On"
 			}
 
 			// Convert Balance string to float64
-			balance, err := strconv.ParseFloat(info.Data.Balance, 64)
+			balance, err := strconv.ParseFloat(info.Balance, 64)
 			if err != nil {
 				utils.LogToFile(fmt.Sprintf("Error parsing balance: %v", err))
 				balance = 0 // Set to 0 if parsing fails
@@ -85,11 +85,11 @@ func CreateDashboardFlex(title string, app *tview.Application) *tview.Flex {
 			// }
 			infoText := fmt.Sprintf("Balance:%s %s (%.2f solXEN) | AutoPay: %s | PayOn: %s %s",
 				// infoText := fmt.Sprintf("Balance:%s %s (%.2f solXEN | %.2f OG solXEN) | AutoPay: %s | PayOn: %s %s",
-				info.Data.Balance, info.Data.Network,
+				info.Balance, info.Coin,
 				// solXENAmount, ogSolXENAmount,
 				solXENAmount,
 				autoPay,
-				info.Data.PaymentThreshold, info.Data.Network)
+				info.PaymentThreshold, info.Coin)
 
 			app.QueueUpdateDraw(func() {
 				unmineableInfoView.SetText(infoText)
