@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 	"xoon/utils"
 
@@ -21,15 +22,114 @@ type ModuleUI struct {
 	ConfigFlex    *tview.Flex
 }
 
+var (
+	dashboardFlexInstance *tview.Flex
+	dashboardMutex        sync.Mutex
+)
+
+func GetDashboardFlex(app *tview.Application) *tview.Flex {
+	dashboardMutex.Lock()
+	defer dashboardMutex.Unlock()
+
+	if dashboardFlexInstance == nil {
+		dashboardFlexInstance = createDashboardFlex(app)
+	}
+
+	return dashboardFlexInstance
+}
+
 func CreateModuleUI(name string, app *tview.Application) ModuleUI {
 	logView := CreateLogView(name+" Logs", app)
 	configFlex := CreateConfigFlex(name, app, logView)
-	dashboardFlex := CreateDashboardFlex(name, app)
+	dashboardFlex := GetDashboardFlex(app)
 	return ModuleUI{
 		DashboardFlex: dashboardFlex,
 		LogView:       logView,
 		ConfigFlex:    configFlex,
 	}
+}
+
+func createDashboardFlex(app *tview.Application) *tview.Flex {
+	dashboardFlex := tview.NewFlex().
+		SetDirection(tview.FlexColumn)
+
+	// Create a new text view for Unmineable info
+	unmineableInfoView := tview.NewTextView().
+		SetDynamicColors(true).
+		SetRegions(true).
+		SetWrap(false)
+
+	// Function to update Unmineable info
+	updateUnmineableInfo := func() {
+		// Check if GLOBAL_PUBLIC_KEY is empty
+		if utils.GetGlobalPublicKey() == "" {
+			return
+		}
+
+		go func() {
+			info, err := utils.GetUnmineableInfo(utils.GetGlobalPublicKey(), "SOL")
+			if err != nil {
+				app.QueueUpdateDraw(func() {
+					unmineableInfoView.SetText(fmt.Sprintf("Error: %v", err))
+				})
+				return
+			}
+
+			autoPay := "Off"
+			if info.AutoPay {
+				autoPay = "On"
+			}
+
+			// Convert Balance string to float64
+			balance, err := strconv.ParseFloat(info.Balance, 64)
+			if err != nil {
+				utils.LogToFile(fmt.Sprintf("Error parsing balance: %v", err))
+				balance = 0 // Set to 0 if parsing fails
+			}
+
+			// Get solXEN equivalent
+			solXENAmount, err := utils.GetTokenExchangeAmount(balance, utils.SolXEN)
+			if err != nil {
+				utils.LogToFile(fmt.Sprintf("Error getting solXEN amount: %v", err))
+				solXENAmount = 0 // Set to 0 if there's an error
+			}
+
+			// Get OG solXEN equivalent
+			// ogSolXENAmount, err := utils.GetTokenExchangeAmount(balance, utils.OGSolXEN)
+			// if err != nil {
+			// 	utils.LogToFile(fmt.Sprintf("Error getting OG solXEN amount: %v", err))
+			// 	ogSolXENAmount = 0 // Set to 0 if there's an error
+			// }
+			infoText := fmt.Sprintf("Balance:%s %s (%.2f solXEN) | AutoPay: %s | PayOn: %s %s",
+				// infoText := fmt.Sprintf("Balance:%s %s (%.2f solXEN | %.2f OG solXEN) | AutoPay: %s | PayOn: %s %s",
+				info.Balance, info.Coin,
+				// solXENAmount, ogSolXENAmount,
+				solXENAmount,
+				autoPay,
+				info.PaymentThreshold, info.Coin)
+
+			app.QueueUpdateDraw(func() {
+				unmineableInfoView.SetText(infoText)
+			})
+		}()
+	}
+
+	// Initial update
+	updateUnmineableInfo()
+
+	// Set up a ticker to update every 60 minutes
+	go func() {
+		ticker := time.NewTicker(time.Hour)
+		for range ticker.C {
+			updateUnmineableInfo()
+		}
+	}()
+
+	// Add the Unmineable info view to the flex
+	dashboardFlex.AddItem(unmineableInfoView, 0, 1, false)
+
+	dashboardFlex.SetBorder(true).SetTitle("Dashboard")
+	return dashboardFlex
 }
 
 func CreateDashboardFlex(title string, app *tview.Application) *tview.Flex {

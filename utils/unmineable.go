@@ -28,12 +28,14 @@ func GetUnmineableInfo(publicKey string, coin string) (*UnmineableInfo, error) {
 
 	resp, err := http.Get(url)
 	if err != nil {
+		LogToFile(fmt.Sprintf("HTTP GET request failed: %v", err))
 		return nil, fmt.Errorf("HTTP GET request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		LogToFile(fmt.Sprintf("Failed to read response body: %v", err))
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
@@ -48,12 +50,12 @@ func GetUnmineableInfo(publicKey string, coin string) (*UnmineableInfo, error) {
 	}
 	err = json.Unmarshal(body, &unmineableResp)
 	if err != nil {
+		LogToFile(fmt.Sprintf("Failed to unmarshal JSON: %v", err))
 		return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
 	}
 
 	// Log the unmineableResp to the debug file
-	logMessage := fmt.Sprintf("Unmineable Response: %+v", unmineableResp)
-	LogToFile(logMessage)
+	LogToFile(fmt.Sprintf("Unmineable Response: %+v", unmineableResp))
 
 	unmineableInfo = UnmineableInfo{
 		Uuid:    unmineableResp.Data.Uuid,
@@ -64,12 +66,14 @@ func GetUnmineableInfo(publicKey string, coin string) (*UnmineableInfo, error) {
 	url = fmt.Sprintf("https://api.unminable.com/v4/account/%s/stats", unmineableInfo.Uuid)
 	resp, err = http.Get(url)
 	if err != nil {
+		LogToFile(fmt.Sprintf("HTTP GET request failed: %v", err))
 		return nil, fmt.Errorf("HTTP GET request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
+		LogToFile(fmt.Sprintf("Failed to read response body: %v", err))
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
@@ -88,6 +92,7 @@ func GetUnmineableInfo(publicKey string, coin string) (*UnmineableInfo, error) {
 
 	err = json.Unmarshal(body, &unmineableStatsResp)
 	if err != nil {
+		LogToFile(fmt.Sprintf("Failed to unmarshal JSON: %v", err))
 		return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
 	}
 
@@ -97,6 +102,8 @@ func GetUnmineableInfo(publicKey string, coin string) (*UnmineableInfo, error) {
 	unmineableInfo.Past24hRewarded = unmineableStatsResp.Data.Rewarded.Past24hRewarded
 	unmineableInfo.Past7dRewarded = unmineableStatsResp.Data.Rewarded.Past7dRewarded
 	unmineableInfo.Past30dRewarded = unmineableStatsResp.Data.Rewarded.Past30dRewarded
+
+	LogToFile(fmt.Sprintf("Fetched Unmineable Info: %+v", unmineableInfo))
 
 	return &unmineableInfo, nil
 }
