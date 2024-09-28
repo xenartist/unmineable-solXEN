@@ -8,12 +8,12 @@ GUI (TUI in terminal/console) mining [solXEN](https://solscan.io/token/6f8deE148
 
 ## Features
 
-![unmineable-solXEN-flowchart](https://github.com/xenartist/unmineable-solXEN/blob/main/screenshot/unmineable-solXEN-flowchart.png)
+![unmineable-solXEN-flowchart](https://github.com/xenartist/unmineable-solXEN/blob/main/screenshot/unmineable-solXEN-flowchart.jpg)
 
 - [x] Both CPU & GPU mining are supported
 - [x] Mining SOL through [unmineable.com](https://unmineable.com/)
 - [x] Swap SOL to [solXEN](https://solscan.io/token/6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7) through [jup.ag](https://jup.ag/) automatically
-- [x] Swap SOL to targeting token through [jup.ag](https://jup.ag/) automatically
+- [x] Swap SOL to targeting tokens through [jup.ag](https://jup.ag/) automatically
 - [x] Password protected wallet
 - [x] Mouse-click mining supported well
 - [x] No SOL deposit required, just public key
