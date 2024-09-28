@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -9,18 +10,27 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/rivo/tview"
 )
 
 // var GLOBAL_PASSWORD string = ""
 // var GLOBAL_PUBLIC_KEY string = ""
 // var GLOBAL_PRIVATE_KEY string = ""
+type TokenBalance struct {
+	Mint    string
+	Symbol  string
+	Balance float64
+}
 
 var (
 	encryptedPassword  []byte
@@ -411,4 +421,138 @@ func ExportPublicKey() error {
 
 	LogToFile("Public key exported successfully to " + exportFilePath)
 	return nil
+}
+
+func GetSOLBalance(publicKey string) (float64, error) {
+	LogToFile("Starting to fetch SOL balance")
+
+	// Prepare the RPC request
+	rpcURL := "https://api.mainnet-beta.solana.com"
+	payload := []byte(`{
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "getBalance",
+        "params": [
+            "` + publicKey + `"
+        ]
+    }`)
+
+	// Send the request
+	resp, err := http.Post(rpcURL, "application/json", bytes.NewBuffer(payload))
+	if err != nil {
+		LogToFile(fmt.Sprintf("Error sending RPC request: %v", err))
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	// Parse the response
+	var result struct {
+		Result struct {
+			Value int64 `json:"value"`
+		} `json:"result"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		LogToFile(fmt.Sprintf("Error decoding response: %v", err))
+		return 0, err
+	}
+
+	// Convert lamports to SOL
+	solBalance := float64(result.Result.Value) / 1e9
+
+	LogToFile(fmt.Sprintf("Fetched SOL balance: %f", solBalance))
+	return solBalance, nil
+}
+
+func GetWalletTokenBalances(publicKey string) ([]TokenBalance, error) {
+	LogToFile("Starting to fetch wallet token balances")
+
+	// Prepare the RPC request
+	rpcURL := "https://api.mainnet-beta.solana.com"
+	payload := []byte(`{
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "getTokenAccountsByOwner",
+        "params": [
+            "` + publicKey + `",
+            {
+                "mint": "6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7"
+            },
+            {
+                "encoding": "jsonParsed"
+            }
+        ]
+    }`)
+
+	// Send the request
+	resp, err := http.Post(rpcURL, "application/json", bytes.NewBuffer(payload))
+	if err != nil {
+		LogToFile(fmt.Sprintf("Error sending RPC request: %v", err))
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Parse the response
+	var result struct {
+		Result struct {
+			Value []struct {
+				Account struct {
+					Data struct {
+						Parsed struct {
+							Info struct {
+								Mint        string `json:"mint"`
+								TokenAmount struct {
+									Amount   string `json:"amount"`
+									Decimals int    `json:"decimals"`
+								} `json:"tokenAmount"`
+							} `json:"info"`
+						} `json:"parsed"`
+					} `json:"data"`
+				} `json:"account"`
+			} `json:"value"`
+		} `json:"result"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		LogToFile(fmt.Sprintf("Error decoding response: %v", err))
+		return nil, err
+	}
+
+	var balances []TokenBalance
+	for _, account := range result.Result.Value {
+		info := account.Account.Data.Parsed.Info
+		amount, _ := strconv.ParseFloat(info.TokenAmount.Amount, 64)
+		balance := amount / math.Pow10(info.TokenAmount.Decimals)
+
+		symbol, err := getTokenSymbol(rpc.New(rpcURL), solana.MustPublicKeyFromBase58(info.Mint))
+		if err != nil {
+			LogToFile(fmt.Sprintf("Error fetching token symbol for %s: %v", info.Mint, err))
+			symbol = "Unknown"
+		}
+
+		balances = append(balances, TokenBalance{
+			Mint:    info.Mint,
+			Symbol:  symbol,
+			Balance: balance,
+		})
+	}
+
+	if len(balances) == 0 {
+		LogToFile("No balance found for the specified token, returning default solXEN info")
+		balances = append(balances, TokenBalance{
+			Mint:    "6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7", // solXEN mint address
+			Symbol:  "solXEN",
+			Balance: 0,
+		})
+	}
+
+	LogToFile(fmt.Sprintf("Fetched balance for token: %s", balances[0].Symbol))
+	return balances, nil
+}
+
+func getTokenSymbol(client *rpc.Client, mint solana.PublicKey) (string, error) {
+	// This is a simplified version. In a real-world scenario, you might want to use
+	// a token list or metadata program to get accurate symbol information.
+	// For now, we'll return the first 4 characters of the mint address as a placeholder.
+	return mint.String()[:4], nil
 }

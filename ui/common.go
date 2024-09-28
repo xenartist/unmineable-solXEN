@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 	"xoon/utils"
@@ -51,7 +52,7 @@ func CreateModuleUI(name string, app *tview.Application) ModuleUI {
 
 func createDashboardFlex(app *tview.Application) *tview.Flex {
 	dashboardFlex := tview.NewFlex().
-		SetDirection(tview.FlexColumn)
+		SetDirection(tview.FlexRow)
 
 	// Create a new text view for Unmineable info
 	unmineableInfoView := tview.NewTextView().
@@ -95,7 +96,8 @@ func createDashboardFlex(app *tview.Application) *tview.Flex {
 			}
 
 			// First line
-			line1 := fmt.Sprintf("Balance: %s %s (%.2f solXEN) | AutoPay: %s | PayOn: %s %s",
+			lin0 := "MINING STATS:"
+			line1 := fmt.Sprintf("Pending: %s %s (%.2f solXEN) | AutoPay: %s | PayOn: %s %s",
 				info.Balance, info.Coin,
 				solXENAmount,
 				autoPay,
@@ -114,7 +116,7 @@ func createDashboardFlex(app *tview.Application) *tview.Flex {
 				solXEN24h, solXEN7d, solXEN30d)
 
 			// Combine both lines
-			infoText := line1 + "\n" + line2
+			infoText := lin0 + "\n" + line1 + "\n" + line2
 
 			app.QueueUpdateDraw(func() {
 				unmineableInfoView.SetText(infoText)
@@ -133,8 +135,66 @@ func createDashboardFlex(app *tview.Application) *tview.Flex {
 		}
 	}()
 
+	// Create a new text view for wallet info
+	walletInfoView := tview.NewTextView().
+		SetDynamicColors(true).
+		SetRegions(true).
+		SetWrap(false)
+
+	// Function to update wallet info
+	updateWalletInfo := func() {
+		if utils.GetGlobalPublicKey() == "" {
+			return
+		}
+
+		go func() {
+			var infoText strings.Builder
+			infoText.WriteString("\n")
+			infoText.WriteString("WALLET BALANCE: \n")
+
+			// Get SOL balance
+			solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
+			if err != nil {
+				app.QueueUpdateDraw(func() {
+					walletInfoView.SetText(fmt.Sprintf("Error fetching SOL balance: %v", err))
+				})
+				return
+			}
+			infoText.WriteString(fmt.Sprintf("%.6f SOL", solBalance))
+
+			// Get other token balances
+			balances, err := utils.GetWalletTokenBalances(utils.GetGlobalPublicKey())
+			if err != nil {
+				app.QueueUpdateDraw(func() {
+					walletInfoView.SetText(fmt.Sprintf("Error fetching wallet balances: %v", err))
+				})
+				return
+			}
+
+			for _, balance := range balances {
+				infoText.WriteString(fmt.Sprintf(" | %.6f %s ", balance.Balance, balance.Symbol))
+			}
+
+			app.QueueUpdateDraw(func() {
+				walletInfoView.SetText(infoText.String())
+			})
+		}()
+	}
+
+	// Initial update
+	updateWalletInfo()
+
+	// Set up a ticker to update every 60 minutes
+	go func() {
+		ticker := time.NewTicker(60 * time.Minute)
+		for range ticker.C {
+			updateWalletInfo()
+		}
+	}()
+
 	// Add the Unmineable info view to the flex
 	dashboardFlex.AddItem(unmineableInfoView, 0, 1, false)
+	dashboardFlex.AddItem(walletInfoView, 0, 1, false)
 
 	dashboardFlex.SetBorder(true).SetTitle("Dashboard")
 	return dashboardFlex
