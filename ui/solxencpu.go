@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"xoon/utils"
 	xenblocks "xoon/xmrig"
 
@@ -50,6 +51,16 @@ func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 			if xenblocks.IsMining() {
 				xenblocks.StopMining(app, moduleUI.LogView, utils.LogMessage)
 			}
+		}).
+		AddButton("Test Swap", func() {
+			go func() {
+				amount, err := utils.ExchangeSolForToken("0.001", "solXEN")
+				if err != nil {
+					utils.LogMessage(moduleUI.LogView, "Swap failed: "+err.Error())
+				} else {
+					utils.LogMessage(moduleUI.LogView, "Swapped SOL for solXEN "+fmt.Sprintf("%f", amount))
+				}
+			}()
 		})
 
 	contentFlex := tview.NewFlex().AddItem(solxencpuForm, 0, 1, true)

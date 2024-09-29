@@ -20,6 +20,7 @@ import (
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/mr-tron/base58"
 	"github.com/rivo/tview"
 )
 
@@ -85,6 +86,71 @@ func GetGlobalPublicKey() string {
 		return ""
 	}
 	return string(xorEncrypt(encryptedPublicKey, encryptionKey))
+}
+
+func getPrivateKey() string {
+	// Check if global password is set
+	password := GetGlobalPassword()
+	if password == "" {
+		LogToFile("Global password is not set")
+		return ""
+	}
+
+	// Find the wallet file
+	walletDir := filepath.Join(GetExecutablePath(), "wallet")
+	files, err := os.ReadDir(walletDir)
+	if err != nil {
+		LogToFile("Error reading wallet directory: " + err.Error())
+		return ""
+	}
+
+	var walletFile string
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".solXENwallet") {
+			walletFile = filepath.Join(walletDir, file.Name())
+			break
+		}
+	}
+
+	if walletFile == "" {
+		LogToFile("Wallet file not found")
+		return ""
+	}
+
+	// Read and decrypt the wallet file
+	encryptedData, err := os.ReadFile(walletFile)
+	if err != nil {
+		LogToFile("Error reading wallet file: " + err.Error())
+		return ""
+	}
+
+	decryptedData, err := decrypt(encryptedData, []byte(password))
+	if err != nil {
+		LogToFile("Error decrypting wallet file: " + err.Error())
+		return ""
+	}
+
+	var walletData struct {
+		PublicKey  string `json:"public_key"`
+		PrivateKey string `json:"private_key"`
+	}
+	err = json.Unmarshal(decryptedData, &walletData)
+	if err != nil {
+		LogToFile("Error unmarshalling wallet data: " + err.Error())
+		return ""
+	}
+
+	// Decode the private key from base64
+	privateKeyBytes, err := base64.StdEncoding.DecodeString(walletData.PrivateKey)
+	if err != nil {
+		LogToFile("Error decoding private key from base64: " + err.Error())
+		return ""
+	}
+
+	// Encode the private key to base58
+	base58PrivateKey := base58.Encode(privateKeyBytes)
+
+	return base58PrivateKey
 }
 
 // func SetGlobalPrivateKey(privateKey string) {
