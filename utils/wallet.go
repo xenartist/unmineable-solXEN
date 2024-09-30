@@ -19,7 +19,6 @@ import (
 	"sync"
 
 	"github.com/gagliardetto/solana-go"
-	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/mr-tron/base58"
 	"github.com/rivo/tview"
 )
@@ -590,17 +589,15 @@ func GetWalletTokenBalances(publicKey string) ([]TokenBalance, error) {
 		amount, _ := strconv.ParseFloat(info.TokenAmount.Amount, 64)
 		balance := amount / math.Pow10(info.TokenAmount.Decimals)
 
-		symbol, err := getTokenSymbol(rpc.New(rpcURL), solana.MustPublicKeyFromBase58(info.Mint))
-		if err != nil {
-			LogToFile(fmt.Sprintf("Error fetching token symbol for %s: %v", info.Mint, err))
-			symbol = "Unknown"
-		}
+		symbol := getTokenSymbol(info.Mint)
 
 		balances = append(balances, TokenBalance{
 			Mint:    info.Mint,
 			Symbol:  symbol,
 			Balance: balance,
 		})
+
+		LogToFile(fmt.Sprintf("Mint: %s, Symbol: %s, Balance: %f", info.Mint, symbol, balance))
 	}
 
 	if len(balances) == 0 {
@@ -616,9 +613,17 @@ func GetWalletTokenBalances(publicKey string) ([]TokenBalance, error) {
 	return balances, nil
 }
 
-func getTokenSymbol(client *rpc.Client, mint solana.PublicKey) (string, error) {
-	// This is a simplified version. In a real-world scenario, you might want to use
-	// a token list or metadata program to get accurate symbol information.
-	// For now, we'll return the first 4 characters of the mint address as a placeholder.
-	return mint.String()[:4], nil
+func getTokenSymbol(mint string) string {
+	switch mint {
+	case "6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7":
+		return "solXEN"
+	case "EEqrab5tdnVdZv7a4AUAvGehDAtM8gWd7szwfyYbmGkM":
+		return "OG solXEN"
+	case "7UN8WkBumTUCofVPXCPjNWQ6msQhzrg9tFQRP48Nmw5V":
+		return "xencat"
+	case "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp":
+		return "ORE"
+	default:
+		return "Unknown"
+	}
 }
