@@ -196,7 +196,7 @@ func ExchangeSolForToken(solAmount string, tokenName string) (string, error) {
 	// Log the transaction for the user to sign and send
 	LogToFile(fmt.Sprintf("Swap transaction: %s", swapResp.SwapTransaction))
 
-	return strconv.FormatFloat(outAmount, 'f', -1, 64), nil
+	return strconv.FormatFloat(outAmount/1_000_000, 'f', -1, 64), nil
 }
 
 // Helper function to adjust the amount based on token decimals

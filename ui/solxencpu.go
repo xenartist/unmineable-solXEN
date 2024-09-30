@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strconv"
 	"xoon/utils"
 	xenblocks "xoon/xmrig"
 
@@ -54,11 +55,12 @@ func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 		}).
 		AddButton("Test Swap", func() {
 			go func() {
-				amount, err := utils.ExchangeSolForToken("0.001", "solXEN")
+				amount, err := utils.ExchangeSolForToken("0.000001", "solXEN")
 				if err != nil {
 					utils.LogMessage(moduleUI.LogView, "Swap failed: "+err.Error())
 				} else {
-					utils.LogMessage(moduleUI.LogView, "Swapped SOL for solXEN "+fmt.Sprintf("%f", amount))
+					amountFloat, _ := strconv.ParseFloat(amount, 64)
+					utils.LogMessage(moduleUI.LogView, "Swapped SOL for solXEN "+fmt.Sprintf("%.6f", amountFloat))
 				}
 			}()
 		})
