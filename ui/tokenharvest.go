@@ -68,6 +68,8 @@ func CreateTokenHarvestUI(app *tview.Application) ModuleUI {
 	// 3. Swap button
 	manualHarvestForm.AddButton("Harvest", func() {
 
+		utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Swapping %s SOL for solXEN", solAmount))
+
 		result, err := utils.ExchangeSolForToken(solAmount, "solXEN")
 		if err != nil {
 			// Handle error
