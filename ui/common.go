@@ -14,8 +14,9 @@ import (
 const WALLET_STRING = "Solana Wallet"
 const SOLXEN_CPU_MINER_STRING = "solXEN Miner (CPU)"
 const SOLXEN_GPU_MINER_STRING = "solXEN Miner (GPU)"
+const TOKEN_HARVEST_STRING = "Token Harvest"
 
-var ModuleNames = []string{WALLET_STRING, SOLXEN_CPU_MINER_STRING, SOLXEN_GPU_MINER_STRING}
+var ModuleNames = []string{WALLET_STRING, SOLXEN_CPU_MINER_STRING, SOLXEN_GPU_MINER_STRING, TOKEN_HARVEST_STRING}
 
 type ModuleUI struct {
 	DashboardFlex *tview.Flex
@@ -27,6 +28,8 @@ var (
 	dashboardFlexInstance *tview.Flex
 	dashboardMutex        sync.Mutex
 )
+
+var walletInfoView *tview.TextView
 
 func GetDashboardFlex(app *tview.Application) *tview.Flex {
 	dashboardMutex.Lock()
@@ -136,59 +139,19 @@ func createDashboardFlex(app *tview.Application) *tview.Flex {
 	}()
 
 	// Create a new text view for wallet info
-	walletInfoView := tview.NewTextView().
+	walletInfoView = tview.NewTextView().
 		SetDynamicColors(true).
 		SetRegions(true).
 		SetWrap(false)
 
-	// Function to update wallet info
-	updateWalletInfo := func() {
-		if utils.GetGlobalPublicKey() == "" {
-			return
-		}
-
-		go func() {
-			var infoText strings.Builder
-			infoText.WriteString("\n")
-			infoText.WriteString("WALLET BALANCE: \n")
-
-			// Get SOL balance
-			solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
-			if err != nil {
-				app.QueueUpdateDraw(func() {
-					walletInfoView.SetText(fmt.Sprintf("Error fetching SOL balance: %v", err))
-				})
-				return
-			}
-			infoText.WriteString(fmt.Sprintf("%.6f SOL", solBalance))
-
-			// Get other token balances
-			balances, err := utils.GetWalletTokenBalances(utils.GetGlobalPublicKey())
-			if err != nil {
-				app.QueueUpdateDraw(func() {
-					walletInfoView.SetText(fmt.Sprintf("Error fetching wallet balances: %v", err))
-				})
-				return
-			}
-
-			for _, balance := range balances {
-				infoText.WriteString(fmt.Sprintf(" | %.6f %s ", balance.Balance, balance.Symbol))
-			}
-
-			app.QueueUpdateDraw(func() {
-				walletInfoView.SetText(infoText.String())
-			})
-		}()
-	}
-
 	// Initial update
-	updateWalletInfo()
+	UpdateWalletInfo(app, walletInfoView)
 
 	// Set up a ticker to update every 60 minutes
 	go func() {
 		ticker := time.NewTicker(60 * time.Minute)
 		for range ticker.C {
-			updateWalletInfo()
+			UpdateWalletInfo(app, walletInfoView)
 		}
 	}()
 
@@ -220,6 +183,8 @@ func CreateConfigFlex(title string, app *tview.Application, logView *tview.TextV
 		return CreateSolXENCPUConfigFlex(app, logView)
 	case SOLXEN_GPU_MINER_STRING:
 		return CreateSolXENGPUConfigFlex(app, logView)
+	case TOKEN_HARVEST_STRING:
+		return CreateTokenHarvestConfigFlex(app, logView)
 
 	default:
 		return createDefaultConfigFlex(title, app, logView)
@@ -240,7 +205,7 @@ func CreateSwitchViewFunc(rightFlex *tview.Flex, mainMenu *tview.List) func(*tvi
 		rightFlex.
 			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 				AddItem(dashboardFlex, 0, 1, false).
-				AddItem(configFlex, 0, 4, false),
+				AddItem(configFlex, 0, 3, false),
 				0, 1, false).
 			AddItem(logView, 8, 1, false)
 		mainMenu.SetCurrentItem(0)
@@ -257,4 +222,44 @@ func UpdateButtonLabel(flex *tview.Flex, buttonName string, newLabel string) {
 			}
 		}
 	}
+}
+
+// Function to update wallet info
+func UpdateWalletInfo(app *tview.Application, walletInfoView *tview.TextView) {
+	if utils.GetGlobalPublicKey() == "" {
+		return
+	}
+
+	go func() {
+		var infoText strings.Builder
+		infoText.WriteString("\n")
+		infoText.WriteString("WALLET BALANCE: \n")
+
+		// Get SOL balance
+		solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
+		if err != nil {
+			app.QueueUpdateDraw(func() {
+				walletInfoView.SetText(fmt.Sprintf("Error fetching SOL balance: %v", err))
+			})
+			return
+		}
+		infoText.WriteString(fmt.Sprintf("%.6f SOL", solBalance))
+
+		// Get other token balances
+		balances, err := utils.GetWalletTokenBalances(utils.GetGlobalPublicKey())
+		if err != nil {
+			app.QueueUpdateDraw(func() {
+				walletInfoView.SetText(fmt.Sprintf("Error fetching wallet balances: %v", err))
+			})
+			return
+		}
+
+		for _, balance := range balances {
+			infoText.WriteString(fmt.Sprintf(" | %.6f %s ", balance.Balance, balance.Symbol))
+		}
+
+		app.QueueUpdateDraw(func() {
+			walletInfoView.SetText(infoText.String())
+		})
+	}()
 }

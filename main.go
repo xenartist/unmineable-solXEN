@@ -91,7 +91,7 @@ func showMainInterface(app *tview.Application) {
 	walletUI := ui.CreateWalletUI(app)
 	solXENCPUUI := ui.CreateSolXENCPUUI(app)
 	solXENGPUUI := ui.CreateSolXENGPUUI(app)
-
+	tokenharvestUI := ui.CreateTokenHarvestUI(app)
 	switchView := ui.CreateSwitchViewFunc(rightFlex, mainMenu)
 
 	modules := []ui.ModuleUI{
@@ -109,6 +109,11 @@ func showMainInterface(app *tview.Application) {
 			DashboardFlex: solXENGPUUI.DashboardFlex,
 			ConfigFlex:    solXENGPUUI.ConfigFlex,
 			LogView:       solXENGPUUI.LogView,
+		},
+		{
+			DashboardFlex: tokenharvestUI.DashboardFlex,
+			ConfigFlex:    tokenharvestUI.ConfigFlex,
+			LogView:       tokenharvestUI.LogView,
 		},
 	}
 
