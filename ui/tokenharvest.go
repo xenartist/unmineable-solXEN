@@ -73,14 +73,8 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 		}
 		return false
 	}, func(text string) {
-		if value, err := strconv.ParseFloat(text, 64); err == nil && value < 0.000001 {
-			utils.LogMessage(moduleUI.LogView, "Error: Minimum SOL amount is 0.000001")
-			// Clear the input or set it to the minimum value
-			autoHarvestForm.GetFormItem(0).(*tview.InputField).SetText("0.000001")
-		} else {
-			if val, err := strconv.ParseFloat(text, 64); err == nil {
-				config.SOLPerHarvest = val
-			}
+		if val, err := strconv.ParseFloat(text, 64); err == nil {
+			config.SOLPerHarvest = val
 		}
 	})
 
@@ -230,7 +224,8 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInfoView *tview.TextView) *tview.Form {
 	// Create Manual Harvest form
 	var manualHarvestForm *tview.Form
-	var solXenField *tview.InputField
+	var tokenAmountField *tview.InputField
+	var tokenDropdown *tview.DropDown
 	manualHarvestForm = tview.NewForm()
 
 	manualHarvestForm.SetBorder(true).
@@ -246,44 +241,47 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 		}
 		return false
 	}, func(text string) {
-		if value, err := strconv.ParseFloat(text, 64); err == nil && value < 0.000001 {
-			utils.LogMessage(moduleUI.LogView, "Error: Minimum SOL amount is 0.000001")
-			// Clear the input or set it to the minimum value
-			manualHarvestForm.GetFormItem(0).(*tview.InputField).SetText("0.000001")
-		} else {
-			solAmount = text
-			// Calculate solXEN amount when SOL amount changes
-			go func() {
-				if solAmount != "" {
-					solAmountFloat, err := strconv.ParseFloat(solAmount, 64)
-					if err != nil {
-						utils.LogMessage(moduleUI.LogView, "Error parsing SOL amount: "+err.Error())
-						return
-					}
-					solXenAmount, err := utils.GetTokenExchangeAmount(solAmountFloat, "solXEN")
-					if err != nil {
-						utils.LogMessage(moduleUI.LogView, "Error calculating solXEN amount: "+err.Error())
-					} else {
-						app.QueueUpdateDraw(func() {
-							solXenField.SetText(fmt.Sprintf("%.6f", solXenAmount))
-						})
-					}
+		solAmount = text
+		// Calculate solXEN amount when SOL amount changes
+		go func() {
+			if solAmount != "" {
+				solAmountFloat, err := strconv.ParseFloat(solAmount, 64)
+				if err != nil {
+					utils.LogMessage(moduleUI.LogView, "Error parsing SOL amount: "+err.Error())
+					return
+				}
+
+				solXenAmount, err := utils.GetTokenExchangeAmount(solAmountFloat, "solXEN")
+				if err != nil {
+					utils.LogMessage(moduleUI.LogView, "Error calculating solXEN amount: "+err.Error())
 				} else {
 					app.QueueUpdateDraw(func() {
-						solXenField.SetText("")
+						tokenAmountField.SetText(fmt.Sprintf("%.6f", solXenAmount))
 					})
 				}
-			}()
-		}
+			} else {
+				app.QueueUpdateDraw(func() {
+					tokenAmountField.SetText("")
+				})
+			}
+		}()
 	})
 
 	// 2. Dropdown for solXEN and input field (readonly)
-	solXenField = tview.NewInputField()
-	solXenField.SetLabel("solXEN Amount").
+	// Create the token dropdown
+	tokenDropdown = tview.NewDropDown().
+		SetLabel("Token Type").
+		SetOptions([]string{"solXEN", "xencat", "ORE"}, nil).
+		SetFieldWidth(20)
+
+	tokenAmountField = tview.NewInputField()
+	tokenAmountField.SetLabel("Amount").
 		SetText("").
 		SetFieldWidth(20).
 		SetDisabled(true)
-	manualHarvestForm.AddFormItem(solXenField)
+
+	manualHarvestForm.AddFormItem(tokenDropdown)
+	manualHarvestForm.AddFormItem(tokenAmountField)
 
 	// 3. Swap button
 	manualHarvestForm.AddButton("Harvest", func() {
@@ -294,7 +292,7 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 			// Handle error
 			utils.LogMessage(moduleUI.LogView, "Error: "+err.Error())
 		} else {
-			solXenField.SetText(result)
+			tokenAmountField.SetText(result)
 			utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Swapped %s SOL for solXEN: %s successfully", solAmount, result))
 
 			// Update wallet info after 60 seconds

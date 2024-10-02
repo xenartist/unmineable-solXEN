@@ -22,6 +22,8 @@ import (
 const (
 	SolXEN          = "solXEN"
 	OGSolXEN        = "OG solXEN"
+	xencat          = "xencat"
+	ORE             = "ORE"
 	JupiterQuoteURL = "https://quote-api.jup.ag/v6/quote"
 	JupiterSwapURL  = "https://quote-api.jup.ag/v6/swap"
 	JupiterPriceURL = "https://price.jup.ag/v6/price"
@@ -71,10 +73,14 @@ var (
 	tokenAddresses = map[string]string{
 		SolXEN: "6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7",
 		// OGSolXEN: "EEqrab5tdnVdZv7a4AUAvGehDAtM8gWd7szwfyYbmGkM",
+		xencat: "7UN8WkBumTUCofVPXCPjNWQ6msQhzrg9tFQRP48Nmw5V",
+		ORE:    "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp",
 	}
 	solXENPrice float64
 	// ogSolXENPrice float64
-	priceMutex sync.RWMutex
+	xencatPrice float64
+	orePrice    float64
+	priceMutex  sync.RWMutex
 )
 
 func InitJupiter() {
@@ -92,6 +98,8 @@ func InitJupiter() {
 func updatePrices() {
 	solXENPrice = fetchPrice(SolXEN)
 	// ogSolXENPrice = fetchPrice(OGSolXEN)
+	xencatPrice = fetchPrice(xencat)
+	orePrice = fetchPrice(ORE)
 }
 
 func fetchPrice(tokenName string) float64 {
@@ -149,6 +157,10 @@ func GetTokenExchangeAmount(solAmount float64, tokenName string) (float64, error
 		price = solXENPrice
 	// case OGSolXEN:
 	// 	price = ogSolXENPrice
+	case xencat:
+		price = xencatPrice
+	case ORE:
+		price = orePrice
 	default:
 		return 0, fmt.Errorf("Unknown token: %s", tokenName)
 	}
