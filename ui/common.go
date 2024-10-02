@@ -254,8 +254,23 @@ func UpdateWalletInfo(app *tview.Application, walletInfoView *tview.TextView) {
 			return
 		}
 
+		// Define the desired order of tokens
+		tokenOrder := []string{"solXEN", "xencat", "ORE"}
+
+		// Create a map for quick lookup of balances
+		balanceMap := make(map[string]utils.TokenBalance)
 		for _, balance := range balances {
-			infoText.WriteString(fmt.Sprintf(" | %.6f %s ", balance.Balance, balance.Symbol))
+			balanceMap[balance.Symbol] = balance
+		}
+
+		// Write balances in the specified order
+		for _, symbol := range tokenOrder {
+			if balance, exists := balanceMap[symbol]; exists {
+				infoText.WriteString(fmt.Sprintf(" | %.6f %s ", balance.Balance, balance.Symbol))
+			} else {
+				// If the token doesn't exist in the balances, display zero
+				infoText.WriteString(fmt.Sprintf(" | 0.000000 %s ", symbol))
+			}
 		}
 
 		app.QueueUpdateDraw(func() {

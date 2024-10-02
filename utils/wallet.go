@@ -541,7 +541,7 @@ func GetWalletTokenBalances(publicKey string) ([]TokenBalance, error) {
         "params": [
             "` + publicKey + `",
             {
-                "mint": "6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7"
+                "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
             },
             {
                 "encoding": "jsonParsed"
@@ -583,33 +583,45 @@ func GetWalletTokenBalances(publicKey string) ([]TokenBalance, error) {
 		return nil, err
 	}
 
+	targetMints := map[string]bool{
+		"6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7": true,
+		"7UN8WkBumTUCofVPXCPjNWQ6msQhzrg9tFQRP48Nmw5V": true,
+		"oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp":  true,
+	}
+
 	var balances []TokenBalance
 	for _, account := range result.Result.Value {
 		info := account.Account.Data.Parsed.Info
-		amount, _ := strconv.ParseFloat(info.TokenAmount.Amount, 64)
-		balance := amount / math.Pow10(info.TokenAmount.Decimals)
+		if targetMints[info.Mint] {
+			amount, _ := strconv.ParseFloat(info.TokenAmount.Amount, 64)
+			balance := amount / math.Pow10(info.TokenAmount.Decimals)
 
-		symbol := getTokenSymbol(info.Mint)
+			symbol := getTokenSymbol(info.Mint)
 
-		balances = append(balances, TokenBalance{
-			Mint:    info.Mint,
-			Symbol:  symbol,
-			Balance: balance,
-		})
+			balances = append(balances, TokenBalance{
+				Mint:    info.Mint,
+				Symbol:  symbol,
+				Balance: balance,
+			})
 
-		LogToFile(fmt.Sprintf("Mint: %s, Symbol: %s, Balance: %f", info.Mint, symbol, balance))
+			LogToFile(fmt.Sprintf("Mint: %s, Symbol: %s, Balance: %f", info.Mint, symbol, balance))
+		}
 	}
 
 	if len(balances) == 0 {
-		LogToFile("No balance found for the specified token, returning default solXEN info")
+		LogToFile("No balances found for the specified tokens, returning default info")
 		balances = append(balances, TokenBalance{
-			Mint:    "6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7", // solXEN mint address
+			Mint:    "6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7",
 			Symbol:  "solXEN",
 			Balance: 0,
 		})
 	}
 
-	LogToFile(fmt.Sprintf("Fetched balance for token: %s", balances[0].Symbol))
+	var symbols []string
+	for _, balance := range balances {
+		symbols = append(symbols, balance.Symbol)
+	}
+	LogToFile(fmt.Sprintf("Fetched balances for tokens: %s", strings.Join(symbols, ", ")))
 	return balances, nil
 }
 
