@@ -275,7 +275,7 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 		SetFieldWidth(20)
 
 	tokenAmountField = tview.NewInputField()
-	tokenAmountField.SetLabel("Amount").
+	tokenAmountField.SetLabel("Amount(Est.)").
 		SetText("").
 		SetFieldWidth(20).
 		SetDisabled(true)
