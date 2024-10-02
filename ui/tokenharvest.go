@@ -52,17 +52,17 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 		utils.LogToFile("Failed to read config file: " + err.Error())
 		// Use default values if config file can't be read
 		config = utils.SolXENConfig{
-			AutoHarvestActive: true,
-			SOLPerHarvest:     0.01,
-			TokenToHarvest:    "solXEN",
-			HarvestInterval:   "1h",
+			// AutoHarvestActive: true,
+			SOLPerHarvest:   0.01,
+			TokenToHarvest:  "solXEN",
+			HarvestInterval: "1h",
 		}
 	}
 
 	// 1. Checkbox for auto harvest activation
-	autoHarvestForm.AddCheckbox("Auto Harvest (ON/OFF)", config.AutoHarvestActive, func(checked bool) {
-		config.AutoHarvestActive = checked
-	})
+	// autoHarvestForm.AddCheckbox("Auto Harvest (ON/OFF)", config.AutoHarvestActive, func(checked bool) {
+	// 	config.AutoHarvestActive = checked
+	// })
 
 	// 2. Input field for SOL amount per harvest
 	solAmountPerHarvest := strconv.FormatFloat(config.SOLPerHarvest, 'f', -1, 64)
@@ -181,21 +181,21 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 			for {
 				select {
 				case <-ticker.C:
-					if config.AutoHarvestActive {
-						// Execute token swap based on configuration
-						result, err := utils.ExchangeSolForToken(strconv.FormatFloat(config.SOLPerHarvest, 'f', -1, 64), config.TokenToHarvest)
-						if err != nil {
-							utils.LogMessage(moduleUI.LogView, "Error: "+err.Error())
-						} else {
-							utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Swapped %v SOL for %s: %s successfully", config.SOLPerHarvest, config.TokenToHarvest, result))
+					// if config.AutoHarvestActive {
+					// Execute token swap based on configuration
+					result, err := utils.ExchangeSolForToken(strconv.FormatFloat(config.SOLPerHarvest, 'f', -1, 64), config.TokenToHarvest)
+					if err != nil {
+						utils.LogMessage(moduleUI.LogView, "Error: "+err.Error())
+					} else {
+						utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Swapped %v SOL for %s: %s successfully", config.SOLPerHarvest, config.TokenToHarvest, result))
 
-							// Update wallet info after 60 seconds
-							go func() {
-								time.Sleep(60 * time.Second)
-								UpdateWalletInfo(app, walletInfoView)
-							}()
-						}
+						// Update wallet info after 60 seconds
+						go func() {
+							time.Sleep(60 * time.Second)
+							UpdateWalletInfo(app, walletInfoView)
+						}()
 					}
+					// }
 					break counterdownLoop
 
 				case <-countdownTicker.C:

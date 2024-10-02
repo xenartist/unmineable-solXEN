@@ -9,10 +9,10 @@ import (
 // var GLOBAL_WORK_DIR string
 
 type SolXENConfig struct {
-	AutoHarvestActive bool    `json:"autoHarvestActive"`
-	SOLPerHarvest     float64 `json:"solPerHarvest"`
-	TokenToHarvest    string  `json:"tokenToHarvest"`
-	HarvestInterval   string  `json:"harvestInterval"`
+	// AutoHarvestActive bool    `json:"autoHarvestActive"`
+	SOLPerHarvest   float64 `json:"solPerHarvest"`
+	TokenToHarvest  string  `json:"tokenToHarvest"`
+	HarvestInterval string  `json:"harvestInterval"`
 }
 
 func GetExecutablePath() string {
@@ -34,10 +34,10 @@ func initSolXENConfig() {
 	if err != nil {
 		// If file doesn't exist, create a default one
 		defaultConfig := SolXENConfig{
-			AutoHarvestActive: true,
-			SOLPerHarvest:     0.01,
-			TokenToHarvest:    "solXEN",
-			HarvestInterval:   "1h",
+			// AutoHarvestActive: true,
+			SOLPerHarvest:   0.01,
+			TokenToHarvest:  "solXEN",
+			HarvestInterval: "1h",
 		}
 		err = WriteSolXENConfigFile(defaultConfig)
 		if err != nil {
