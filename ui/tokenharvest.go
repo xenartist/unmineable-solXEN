@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 	"xoon/utils"
 
@@ -65,9 +66,21 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 
 	// 2. Input field for SOL amount per harvest
 	solAmountPerHarvest := strconv.FormatFloat(config.SOLPerHarvest, 'f', -1, 64)
-	autoHarvestForm.AddInputField("SOL per Harvest", solAmountPerHarvest, 10, nil, func(text string) {
-		if val, err := strconv.ParseFloat(text, 64); err == nil {
-			config.SOLPerHarvest = val
+	autoHarvestForm.AddInputField("SOL per Harvest", solAmountPerHarvest, 10, func(textToCheck string, lastChar rune) bool {
+		// Only allow digits and one decimal point
+		if (lastChar >= '0' && lastChar <= '9') || (lastChar == '.' && !strings.Contains(textToCheck, ".")) {
+			return true
+		}
+		return false
+	}, func(text string) {
+		if value, err := strconv.ParseFloat(text, 64); err == nil && value < 0.000001 {
+			utils.LogMessage(moduleUI.LogView, "Error: Minimum SOL amount is 0.000001")
+			// Clear the input or set it to the minimum value
+			autoHarvestForm.GetFormItem(0).(*tview.InputField).SetText("0.000001")
+		} else {
+			if val, err := strconv.ParseFloat(text, 64); err == nil {
+				config.SOLPerHarvest = val
+			}
 		}
 	})
 
@@ -101,7 +114,7 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 	reloadConfigChan := make(chan struct{})
 
 	// 5. Save Config button
-	autoHarvestForm.AddButton("Save Config & Restart", func() {
+	autoHarvestForm.AddButton("Save Config & Let's Fuckin Harvest!", func() {
 		err := utils.WriteSolXENConfigFile(config)
 		if err != nil {
 			utils.LogMessage(moduleUI.LogView, "Failed to save config: "+err.Error())
@@ -226,30 +239,42 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 
 	// 1. Dropdown for SOL and input field
 	solAmount := ""
-	manualHarvestForm.AddInputField("SOL Amount", "", 20, nil, func(text string) {
-		solAmount = text
-		// Calculate solXEN amount when SOL amount changes
-		go func() {
-			if solAmount != "" {
-				solAmountFloat, err := strconv.ParseFloat(solAmount, 64)
-				if err != nil {
-					utils.LogMessage(moduleUI.LogView, "Error parsing SOL amount: "+err.Error())
-					return
-				}
-				solXenAmount, err := utils.GetTokenExchangeAmount(solAmountFloat, "solXEN")
-				if err != nil {
-					utils.LogMessage(moduleUI.LogView, "Error calculating solXEN amount: "+err.Error())
+	manualHarvestForm.AddInputField("SOL Amount", "0.1", 20, func(textToCheck string, lastChar rune) bool {
+		// Only allow digits and one decimal point
+		if (lastChar >= '0' && lastChar <= '9') || (lastChar == '.' && !strings.Contains(textToCheck, ".")) {
+			return true
+		}
+		return false
+	}, func(text string) {
+		if value, err := strconv.ParseFloat(text, 64); err == nil && value < 0.000001 {
+			utils.LogMessage(moduleUI.LogView, "Error: Minimum SOL amount is 0.000001")
+			// Clear the input or set it to the minimum value
+			manualHarvestForm.GetFormItem(0).(*tview.InputField).SetText("0.000001")
+		} else {
+			solAmount = text
+			// Calculate solXEN amount when SOL amount changes
+			go func() {
+				if solAmount != "" {
+					solAmountFloat, err := strconv.ParseFloat(solAmount, 64)
+					if err != nil {
+						utils.LogMessage(moduleUI.LogView, "Error parsing SOL amount: "+err.Error())
+						return
+					}
+					solXenAmount, err := utils.GetTokenExchangeAmount(solAmountFloat, "solXEN")
+					if err != nil {
+						utils.LogMessage(moduleUI.LogView, "Error calculating solXEN amount: "+err.Error())
+					} else {
+						app.QueueUpdateDraw(func() {
+							solXenField.SetText(fmt.Sprintf("%.6f", solXenAmount))
+						})
+					}
 				} else {
 					app.QueueUpdateDraw(func() {
-						solXenField.SetText(fmt.Sprintf("%.6f", solXenAmount))
+						solXenField.SetText("")
 					})
 				}
-			} else {
-				app.QueueUpdateDraw(func() {
-					solXenField.SetText("")
-				})
-			}
-		}()
+			}()
+		}
 	})
 
 	// 2. Dropdown for solXEN and input field (readonly)
