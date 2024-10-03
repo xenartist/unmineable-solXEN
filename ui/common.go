@@ -13,7 +13,7 @@ import (
 const WALLET_STRING = "Solana Wallet"
 const SOLXEN_CPU_MINER_STRING = "solXEN Miner (CPU)"
 const SOLXEN_GPU_MINER_STRING = "solXEN Miner (GPU)"
-const TOKEN_HARVEST_STRING = "Token Harvest"
+const TOKEN_HARVEST_STRING = "Token Harvest (LFH)"
 
 var ModuleNames = []string{WALLET_STRING, SOLXEN_CPU_MINER_STRING, SOLXEN_GPU_MINER_STRING, TOKEN_HARVEST_STRING}
 
