@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -68,7 +69,7 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 	solAmountPerHarvest := strconv.FormatFloat(config.SOLPerHarvest, 'f', -1, 64)
 	autoHarvestForm.AddInputField("SOL per Harvest", solAmountPerHarvest, 10, func(textToCheck string, lastChar rune) bool {
 		// Only allow digits and one decimal point
-		if (lastChar >= '0' && lastChar <= '9') || (lastChar == '.' && !strings.Contains(textToCheck, ".")) {
+		if (lastChar >= '0' && lastChar <= '9') || (lastChar == '.' && strings.Contains(textToCheck, ".")) {
 			return true
 		}
 		return false
@@ -235,21 +236,27 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 
 	updateTokenAmount := func() {
 		go func() {
-			utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL Amount: %s", solAmount))
-
-			tokenAmount, err := utils.GetTokenExchangeAmount(solAmount, selectedToken)
-			if err != nil {
-				utils.LogMessage(moduleUI.LogView, "Error calculating token amount: "+err.Error())
+			if solAmount != "" && !regexp.MustCompile(`^[0.]*$`).MatchString(solAmount) {
+				tokenAmount, err := utils.GetTokenExchangeAmount(solAmount, selectedToken)
+				if err != nil {
+					utils.LogMessage(moduleUI.LogView, "Error calculating token amount: "+err.Error())
+				} else {
+					tokenAmountText.SetText("Amount(Est.): \n" + tokenAmount + " " + selectedToken)
+				}
 			} else {
-				tokenAmountText.SetText("Amount(Est.): \n" + tokenAmount + " " + selectedToken)
+				tokenAmountText.SetText("Amount(Est.): \n-")
 			}
 		}()
 	}
 
 	// 1. SOL Amount input field
 	manualHarvestForm.AddInputField("SOL Amount", solAmount, 10, func(textToCheck string, lastChar rune) bool {
-		// Only allow digits and one decimal point
-		if (lastChar >= '0' && lastChar <= '9') || (lastChar == '.' && !strings.Contains(textToCheck, ".")) {
+		// Allow digits
+		if lastChar >= '0' && lastChar <= '9' {
+			return true
+		}
+		// Allow one decimal point, but not as the first character
+		if lastChar == '.' && strings.Contains(textToCheck, ".") && len(textToCheck) > 0 {
 			return true
 		}
 		return false
