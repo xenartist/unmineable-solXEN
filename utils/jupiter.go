@@ -76,10 +76,10 @@ var (
 		xencat: "7UN8WkBumTUCofVPXCPjNWQ6msQhzrg9tFQRP48Nmw5V",
 		ORE:    "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp",
 	}
-	solXENPrice float64
+	solXENPrice float64 = 0
 	// ogSolXENPrice float64
-	xencatPrice float64
-	orePrice    float64
+	xencatPrice float64 = 0
+	orePrice    float64 = 0
 	priceMutex  sync.RWMutex
 )
 
@@ -147,9 +147,14 @@ func fetchPrice(tokenName string) float64 {
 }
 
 // GetTokenExchangeAmount queries the amount of specified token that can be exchanged for a given amount of SOL
-func GetTokenExchangeAmount(solAmount float64, tokenName string) (float64, error) {
+func GetTokenExchangeAmount(solAmount string, tokenName string) (string, error) {
 	priceMutex.RLock()
 	defer priceMutex.RUnlock()
+
+	solAmountFloat, err := strconv.ParseFloat(solAmount, 64)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse SOL amount: %w", err)
+	}
 
 	var price float64
 	switch tokenName {
@@ -162,16 +167,19 @@ func GetTokenExchangeAmount(solAmount float64, tokenName string) (float64, error
 	case ORE:
 		price = orePrice
 	default:
-		return 0, fmt.Errorf("Unknown token: %s", tokenName)
+		return "", fmt.Errorf("Unknown token: %s", tokenName)
 	}
 
 	if price == 0 {
-		return 0, errors.New("Price not available")
+		return "", errors.New("Price not available")
 	}
 
-	result := solAmount * price
-	LogToFile(fmt.Sprintf("Calculated result for %s: %f", tokenName, result))
-	return result, nil
+	result := solAmountFloat * price
+
+	formattedResult := fmt.Sprintf("%.6f", result)
+	LogToFile(fmt.Sprintf("Calculated result for %s: %s", tokenName, formattedResult))
+
+	return formattedResult, nil
 }
 
 func ExchangeSolForToken(solAmount string, tokenName string) (string, error) {

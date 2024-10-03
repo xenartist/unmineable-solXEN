@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -84,38 +83,27 @@ func createDashboardFlex(app *tview.Application) *tview.Flex {
 				autoPay = "On"
 			}
 
-			// Convert Balance string to float64
-			balance, err := strconv.ParseFloat(info.Balance, 64)
-			if err != nil {
-				utils.LogToFile(fmt.Sprintf("Error parsing balance: %v", err))
-				balance = 0 // Set to 0 if parsing fails
-			}
-
 			// Get solXEN equivalent
-			solXENAmount, err := utils.GetTokenExchangeAmount(balance, utils.SolXEN)
+			solXENAmount, err := utils.GetTokenExchangeAmount(info.Balance, utils.SolXEN)
 			if err != nil {
 				utils.LogToFile(fmt.Sprintf("Error getting solXEN amount: %v", err))
-				solXENAmount = 0 // Set to 0 if there's an error
+				solXENAmount = "0" // Set to 0 if there's an error
 			}
 
 			// First line
 			lin0 := "MINING STATS:"
-			line1 := fmt.Sprintf("Pending: %s %s (%.2f solXEN) | AutoPay: %s | PayOn: %s %s",
+			line1 := fmt.Sprintf("Pending: %s %s (%s solXEN) | AutoPay: %s | PayOn: %s %s",
 				info.Balance, info.Coin,
 				solXENAmount,
 				autoPay,
 				info.PaymentThreshold, info.Coin)
 
 			// Second line - calculate rewards in solXEN
-			past24h, _ := strconv.ParseFloat(info.Past24h, 64)
-			past7d, _ := strconv.ParseFloat(info.Past7d, 64)
-			past30d, _ := strconv.ParseFloat(info.Past30d, 64)
+			solXEN24h, _ := utils.GetTokenExchangeAmount(info.Past24h, utils.SolXEN)
+			solXEN7d, _ := utils.GetTokenExchangeAmount(info.Past7d, utils.SolXEN)
+			solXEN30d, _ := utils.GetTokenExchangeAmount(info.Past30d, utils.SolXEN)
 
-			solXEN24h, _ := utils.GetTokenExchangeAmount(past24h, utils.SolXEN)
-			solXEN7d, _ := utils.GetTokenExchangeAmount(past7d, utils.SolXEN)
-			solXEN30d, _ := utils.GetTokenExchangeAmount(past30d, utils.SolXEN)
-
-			line2 := fmt.Sprintf("Rewards: 24h: %.2f solXEN | 7d: %.2f solXEN | 30d: %.2f solXEN",
+			line2 := fmt.Sprintf("Rewards: 24h: %s solXEN | 7d: %s solXEN | 30d: %s solXEN",
 				solXEN24h, solXEN7d, solXEN30d)
 
 			// Combine both lines

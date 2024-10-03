@@ -10,7 +10,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-//var tokenharvestForm *tview.Form
+var tokenOptions = []string{"solXEN", "xencat", "ORE"}
 
 func CreateTokenHarvestUI(app *tview.Application) ModuleUI {
 	var moduleUI = CreateModuleUI("Token Harvest", app)
@@ -79,7 +79,6 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 	})
 
 	// 3. Dropdown for token selection
-	tokenOptions := []string{"solXEN", "xencat", "ORE"}
 	tokenIndex := 0
 	for i, token := range tokenOptions {
 		if token == config.TokenToHarvest {
@@ -223,18 +222,32 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 
 func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInfoView *tview.TextView) *tview.Form {
 	// Create Manual Harvest form
-	var manualHarvestForm *tview.Form
-	var tokenAmountField *tview.InputField
-	var tokenDropdown *tview.DropDown
-	manualHarvestForm = tview.NewForm()
-
+	manualHarvestForm := tview.NewForm()
 	manualHarvestForm.SetBorder(true).
 		SetTitle("Manual Harvest").
 		SetTitleAlign(tview.AlignLeft)
 
-	// 1. Dropdown for SOL and input field
-	solAmount := ""
-	manualHarvestForm.AddInputField("SOL Amount", "0.1", 20, func(textToCheck string, lastChar rune) bool {
+	var tokenAmountText *tview.TextView
+	var selectedToken string
+	solAmount := "0.1"
+	tokenIndex := 0 // Default to solXEN
+	selectedToken = tokenOptions[tokenIndex]
+
+	updateTokenAmount := func() {
+		go func() {
+			utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL Amount: %s", solAmount))
+
+			tokenAmount, err := utils.GetTokenExchangeAmount(solAmount, selectedToken)
+			if err != nil {
+				utils.LogMessage(moduleUI.LogView, "Error calculating token amount: "+err.Error())
+			} else {
+				tokenAmountText.SetText("Amount(Est.): \n" + tokenAmount + " " + selectedToken)
+			}
+		}()
+	}
+
+	// 1. SOL Amount input field
+	manualHarvestForm.AddInputField("SOL Amount", solAmount, 10, func(textToCheck string, lastChar rune) bool {
 		// Only allow digits and one decimal point
 		if (lastChar >= '0' && lastChar <= '9') || (lastChar == '.' && !strings.Contains(textToCheck, ".")) {
 			return true
@@ -243,56 +256,39 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 	}, func(text string) {
 		solAmount = text
 		// Calculate solXEN amount when SOL amount changes
-		go func() {
-			if solAmount != "" {
-				solAmountFloat, err := strconv.ParseFloat(solAmount, 64)
-				if err != nil {
-					utils.LogMessage(moduleUI.LogView, "Error parsing SOL amount: "+err.Error())
-					return
-				}
-
-				solXenAmount, err := utils.GetTokenExchangeAmount(solAmountFloat, "solXEN")
-				if err != nil {
-					utils.LogMessage(moduleUI.LogView, "Error calculating solXEN amount: "+err.Error())
-				} else {
-					app.QueueUpdateDraw(func() {
-						tokenAmountField.SetText(fmt.Sprintf("%.6f", solXenAmount))
-					})
-				}
-			} else {
-				app.QueueUpdateDraw(func() {
-					tokenAmountField.SetText("")
-				})
-			}
-		}()
+		updateTokenAmount()
 	})
 
-	// 2. Dropdown for solXEN and input field (readonly)
 	// Create the token dropdown
-	tokenDropdown = tview.NewDropDown().
-		SetLabel("Token Type").
-		SetOptions([]string{"solXEN", "xencat", "ORE"}, nil).
-		SetFieldWidth(20)
-
-	tokenAmountField = tview.NewInputField()
-	tokenAmountField.SetLabel("Amount(Est.)").
-		SetText("").
-		SetFieldWidth(20).
-		SetDisabled(true)
+	tokenDropdown := tview.NewDropDown().
+		SetLabel("Token to Harvest").
+		SetOptions(tokenOptions, func(text string, index int) {
+			selectedToken = text
+			updateTokenAmount()
+		}).
+		SetCurrentOption(tokenIndex)
 
 	manualHarvestForm.AddFormItem(tokenDropdown)
-	manualHarvestForm.AddFormItem(tokenAmountField)
+
+	// 3. Token amount field
+	tokenAmountText = tview.NewTextView()
+	tokenAmountText.SetText("Amount(Est.)")
+
+	manualHarvestForm.AddFormItem(tokenAmountText)
+
+	// Initial token amount calculation
+	updateTokenAmount()
 
 	// 3. Swap button
-	manualHarvestForm.AddButton("Harvest", func() {
+	manualHarvestForm.AddButton("Manual Harvest", func() {
 		utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Swapping %s SOL for solXEN", solAmount))
 
-		result, err := utils.ExchangeSolForToken(solAmount, "solXEN")
+		result, err := utils.ExchangeSolForToken(solAmount, selectedToken)
 		if err != nil {
 			// Handle error
 			utils.LogMessage(moduleUI.LogView, "Error: "+err.Error())
 		} else {
-			tokenAmountField.SetText(result)
+			tokenAmountText.SetText("Amount(Est.): \n" + result + " " + selectedToken)
 			utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Swapped %s SOL for solXEN: %s successfully", solAmount, result))
 
 			// Update wallet info after 60 seconds
