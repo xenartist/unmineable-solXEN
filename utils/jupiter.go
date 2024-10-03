@@ -182,6 +182,39 @@ func GetTokenExchangeAmount(solAmount string, tokenName string) (string, error) 
 	return formattedResult, nil
 }
 
+func GetSolExchangeAmount(tokenAmount string, tokenName string) (string, error) {
+	priceMutex.RLock()
+	defer priceMutex.RUnlock()
+
+	tokenAmountFloat, err := strconv.ParseFloat(tokenAmount, 64)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse token amount: %w", err)
+	}
+
+	var price float64
+	switch tokenName {
+	case SolXEN:
+		price = solXENPrice
+	case xencat:
+		price = xencatPrice
+	case ORE:
+		price = orePrice
+	default:
+		return "", fmt.Errorf("Unknown token: %s", tokenName)
+	}
+
+	if price == 0 {
+		return "", errors.New("Price not available")
+	}
+
+	result := tokenAmountFloat / price
+
+	formattedResult := fmt.Sprintf("%.9f", result) // 9 decimal places for SOL
+	LogToFile(fmt.Sprintf("Calculated SOL amount for %s %s: %s", tokenAmount, tokenName, formattedResult))
+
+	return formattedResult, nil
+}
+
 func ExchangeSolForToken(solAmount string, tokenName string) (string, error) {
 	// Step 1: Get the token mint address
 	tokenMint, ok := tokenAddresses[tokenName]

@@ -181,13 +181,95 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 			for {
 				select {
 				case <-ticker.C:
-					// if config.AutoHarvestActive {
+					// Check wallet balance
+					balances, err := utils.GetWalletTokenBalances(utils.GetGlobalPublicKey())
+					if err != nil {
+						utils.LogMessage(moduleUI.LogView, "Error getting wallet balances: "+err.Error())
+						break counterdownLoop
+					}
+
+					// Get SOL balance
+					solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
+					if err != nil {
+						utils.LogMessage(moduleUI.LogView, "Error getting SOL balance: "+err.Error())
+						break counterdownLoop
+					}
+
+					// Get solXEN balance
+					solXENBalance := 0.0
+					for _, balance := range balances {
+						if balance.Symbol == "solXEN" {
+							solXENBalance = balance.Balance
+							break
+						}
+					}
+
+					if config.TokenToHarvest != "solXEN" {
+
+						// Check if SOL balance is sufficient
+						if solBalance < 0.000006 {
+							utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Insufficient SOL balance %f. Minimum required: 0.000006 SOL", solBalance))
+							break counterdownLoop
+						}
+
+						if solXENBalance < 42069 {
+							// Calculate how many solXEN to buy
+							solXENToBuy := 46920 - solXENBalance
+
+							// Calculate SOL amount needed for solXEN
+							solRequiredAmount, err := utils.GetSolExchangeAmount(fmt.Sprintf("%f", solXENToBuy), "solXEN")
+							if err != nil {
+								utils.LogMessage(moduleUI.LogView, "Error calculating SOL amount for solXEN: "+err.Error())
+								break counterdownLoop
+							}
+
+							// Ensure minimum SOL amount
+							solRequiredAmountFloat, _ := strconv.ParseFloat(solRequiredAmount, 64)
+							if solBalance < solRequiredAmountFloat+0.000005 {
+								utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Insufficient SOL balance %f. Minimum required: %.9f SOL", solBalance, solRequiredAmountFloat+0.000005))
+								break counterdownLoop
+							}
+
+							// Ensure minimum SOL amount 0.000001
+							if solRequiredAmountFloat < 0.000001 {
+								solRequiredAmount = "0.000001"
+							}
+
+							// Buy solXEN
+							result, err := utils.ExchangeSolForToken(solRequiredAmount, "solXEN")
+							if err != nil {
+								utils.LogMessage(moduleUI.LogView, "Error buying solXEN: "+err.Error())
+							} else {
+								utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s -> solXEN: %s successfully for governance purposes", solRequiredAmount, result))
+							}
+
+							// Wait for transaction to complete
+							time.Sleep(60 * time.Second)
+						}
+					}
+
 					// Execute token swap based on configuration
+					if solBalance < config.SOLPerHarvest+0.000005 {
+						utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Insufficient SOL balance %f. Minimum required: %.9f SOL", solBalance, config.SOLPerHarvest+0.000005))
+						break counterdownLoop
+					}
+
+					// Check if SOL balance is sufficient
+					if solBalance < 0.000006 {
+						utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Insufficient SOL balance %f. Minimum required: 0.000006 SOL", solBalance))
+						break counterdownLoop
+					}
+
+					// Ensure minimum SOL amount 0.000001
+					if config.SOLPerHarvest < 0.000001 {
+						config.SOLPerHarvest = 0.000001
+					}
+
 					result, err := utils.ExchangeSolForToken(strconv.FormatFloat(config.SOLPerHarvest, 'f', -1, 64), config.TokenToHarvest)
 					if err != nil {
 						utils.LogMessage(moduleUI.LogView, "Error: "+err.Error())
 					} else {
-						utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Swapped %v SOL for %s: %s successfully", config.SOLPerHarvest, config.TokenToHarvest, result))
+						utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %v -> %s: %s successfully", config.SOLPerHarvest, config.TokenToHarvest, result))
 
 						// Update wallet info after 60 seconds
 						go func() {
@@ -195,7 +277,6 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 							UpdateWalletInfo(app, walletInfoView)
 						}()
 					}
-					// }
 					break counterdownLoop
 
 				case <-countdownTicker.C:
