@@ -2,6 +2,8 @@ package utils
 
 import (
 	"bytes"
+	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,31 +12,39 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	bin "github.com/gagliardetto/binary"
+	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/shopspring/decimal"
 )
 
 const (
 	SolXEN          = "solXEN"
 	OGSolXEN        = "OG solXEN"
+	xencat          = "xencat"
+	ORE             = "ORE"
 	JupiterQuoteURL = "https://quote-api.jup.ag/v6/quote"
 	JupiterSwapURL  = "https://quote-api.jup.ag/v6/swap"
 	JupiterPriceURL = "https://price.jup.ag/v6/price"
 	SOLMint         = "So11111111111111111111111111111111111111112"
 )
 
-type QuoteResponse struct {
-	InputMint            string  `json:"inputMint"`
-	InAmount             string  `json:"inAmount"`
-	OutputMint           string  `json:"outputMint"`
-	OutAmount            string  `json:"outAmount"`
-	OtherAmountThreshold string  `json:"otherAmountThreshold"`
-	SwapMode             string  `json:"swapMode"`
-	SlippageBps          int     `json:"slippageBps"`
-	PriceImpactPct       string  `json:"priceImpactPct"`
-	RoutePlan            []Route `json:"routePlan"`
+type RoutePlanItem struct {
+	SwapInfo SwapInfo `json:"swapInfo"`
+	Percent  int      `json:"percent"`
 }
 
-type Route struct {
-	SwapInfo SwapInfo `json:"swapInfo"`
+type QuoteResponse struct {
+	InputMint            string          `json:"inputMint"`
+	InAmount             string          `json:"inAmount"`
+	OutputMint           string          `json:"outputMint"`
+	OutAmount            string          `json:"outAmount"`
+	OtherAmountThreshold string          `json:"otherAmountThreshold"`
+	SwapMode             string          `json:"swapMode"`
+	SlippageBps          int             `json:"slippageBps"`
+	PriceImpactPct       string          `json:"priceImpactPct"`
+	RoutePlan            []RoutePlanItem `json:"routePlan"`
 }
 
 type SwapInfo struct {
@@ -49,10 +59,10 @@ type SwapInfo struct {
 }
 
 type SwapRequest struct {
-	QuoteResponse     QuoteResponse `json:"quoteResponse"`
-	UserPublicKey     string        `json:"userPublicKey"`
-	WrapUnwrapSOL     bool          `json:"wrapUnwrapSOL"`
-	UseSharedAccounts bool          `json:"useSharedAccounts"`
+	QuoteResponse             QuoteResponse `json:"quoteResponse"`
+	UserPublicKey             string        `json:"userPublicKey"`
+	WrapAndUnwrapSOL          bool          `json:"wrapAndUnwrapSOL"`
+	PrioritizationFeeLamports string        `json:"prioritizationFeeLamports"`
 }
 
 type SwapResponse struct {
@@ -63,10 +73,14 @@ var (
 	tokenAddresses = map[string]string{
 		SolXEN: "6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7",
 		// OGSolXEN: "EEqrab5tdnVdZv7a4AUAvGehDAtM8gWd7szwfyYbmGkM",
+		xencat: "7UN8WkBumTUCofVPXCPjNWQ6msQhzrg9tFQRP48Nmw5V",
+		ORE:    "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp",
 	}
-	solXENPrice float64
+	solXENPrice float64 = 0
 	// ogSolXENPrice float64
-	priceMutex sync.RWMutex
+	xencatPrice float64 = 0
+	orePrice    float64 = 0
+	priceMutex  sync.RWMutex
 )
 
 func InitJupiter() {
@@ -84,6 +98,8 @@ func InitJupiter() {
 func updatePrices() {
 	solXENPrice = fetchPrice(SolXEN)
 	// ogSolXENPrice = fetchPrice(OGSolXEN)
+	xencatPrice = fetchPrice(xencat)
+	orePrice = fetchPrice(ORE)
 }
 
 func fetchPrice(tokenName string) float64 {
@@ -131,9 +147,14 @@ func fetchPrice(tokenName string) float64 {
 }
 
 // GetTokenExchangeAmount queries the amount of specified token that can be exchanged for a given amount of SOL
-func GetTokenExchangeAmount(solAmount float64, tokenName string) (float64, error) {
+func GetTokenExchangeAmount(solAmount string, tokenName string) (string, error) {
 	priceMutex.RLock()
 	defer priceMutex.RUnlock()
+
+	solAmountFloat, err := strconv.ParseFloat(solAmount, 64)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse SOL amount: %w", err)
+	}
 
 	var price float64
 	switch tokenName {
@@ -141,53 +162,123 @@ func GetTokenExchangeAmount(solAmount float64, tokenName string) (float64, error
 		price = solXENPrice
 	// case OGSolXEN:
 	// 	price = ogSolXENPrice
+	case xencat:
+		price = xencatPrice
+	case ORE:
+		price = orePrice
 	default:
-		return 0, fmt.Errorf("Unknown token: %s", tokenName)
+		return "", fmt.Errorf("Unknown token: %s", tokenName)
 	}
 
 	if price == 0 {
-		return 0, errors.New("Price not available")
+		return "", errors.New("Price not available")
 	}
 
-	result := solAmount * price
-	LogToFile(fmt.Sprintf("Calculated result for %s: %f", tokenName, result))
-	return result, nil
+	result := solAmountFloat * price
+
+	formattedResult := fmt.Sprintf("%.6f", result)
+	LogToFile(fmt.Sprintf("Calculated result for %s: %s", tokenName, formattedResult))
+
+	return formattedResult, nil
 }
 
-func ExchangeSolForToken(solAmount float64, tokenName string) (float64, error) {
+func GetSolExchangeAmount(tokenAmount string, tokenName string) (string, error) {
+	priceMutex.RLock()
+	defer priceMutex.RUnlock()
+
+	tokenAmountFloat, err := strconv.ParseFloat(tokenAmount, 64)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse token amount: %w", err)
+	}
+
+	var price float64
+	switch tokenName {
+	case SolXEN:
+		price = solXENPrice
+	case xencat:
+		price = xencatPrice
+	case ORE:
+		price = orePrice
+	default:
+		return "", fmt.Errorf("Unknown token: %s", tokenName)
+	}
+
+	if price == 0 {
+		return "", errors.New("Price not available")
+	}
+
+	result := tokenAmountFloat / price
+
+	formattedResult := fmt.Sprintf("%.9f", result) // 9 decimal places for SOL
+	LogToFile(fmt.Sprintf("Calculated SOL amount for %s %s: %s", tokenAmount, tokenName, formattedResult))
+
+	return formattedResult, nil
+}
+
+func ExchangeSolForToken(solAmount string, tokenName string) (string, error) {
 	// Step 1: Get the token mint address
 	tokenMint, ok := tokenAddresses[tokenName]
 	if !ok {
-		return 0, fmt.Errorf("unknown token: %s", tokenName)
+		return "", fmt.Errorf("unknown token: %s", tokenName)
 	}
 
 	// Step 2: Get a quote
-	quoteResp, err := getQuote(SOLMint, tokenMint, fmt.Sprintf("%.9f", solAmount))
+	quoteResp, err := getQuote(SOLMint, tokenMint, solAmount)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get quote: %v", err)
+		return "", fmt.Errorf("failed to get quote: %v", err)
 	}
 
 	// Step 3: Execute the swap
 	swapResp, err := executeSwap(quoteResp, GetGlobalPublicKey())
 	if err != nil {
-		return 0, fmt.Errorf("failed to execute swap: %v", err)
+		return "", fmt.Errorf("failed to execute swap: %v", err)
 	}
 
 	// Step 4: Parse the output amount
-	outAmount, err := strconv.ParseFloat(quoteResp.OutAmount, 64)
+	outAmount, err := parseAmount(quoteResp.OutAmount)
 	if err != nil {
-		return 0, fmt.Errorf("failed to parse out amount: %v", err)
+		return "", fmt.Errorf("failed to parse out amount: %v", err)
+	}
+
+	// Step 5: Sign and send the transaction
+	err = signAndSendTransaction(swapResp.SwapTransaction, getPrivateKey())
+	if err != nil {
+		return "", fmt.Errorf("failed to sign and send transaction: %v", err)
 	}
 
 	// Log the transaction for the user to sign and send
 	LogToFile(fmt.Sprintf("Swap transaction: %s", swapResp.SwapTransaction))
 
-	return outAmount, nil
+	return strconv.FormatFloat(outAmount/1_000_000, 'f', -1, 64), nil
 }
 
-func getQuote(inputMint, outputMint, inAmount string) (*QuoteResponse, error) {
+// Helper function to adjust the amount based on token decimals
+func adjustAmountForDecimals(amount string) (string, error) {
+	// Convert string to decimal
+	decimalAmount, err := decimal.NewFromString(amount)
+	if err != nil {
+		return "", fmt.Errorf("failed to convert amount to decimal: %w", err)
+	}
+
+	// Multiply by 10^9 (1_000_000_000)
+	adjustedAmount := decimalAmount.Mul(decimal.NewFromInt(1_000_000_000))
+
+	LogToFile(fmt.Sprintf("Original amount: %s, Adjusted amount: %s", amount, adjustedAmount.String()))
+
+	// Return the string representation of the adjusted decimal
+	return adjustedAmount.String(), nil
+}
+
+func getQuote(inputMint string, outputMint string, inAmount string) (*QuoteResponse, error) {
+
+	// Adjust inAmount
+	adjustedAmount, err := adjustAmountForDecimals(inAmount)
+	if err != nil {
+		return nil, fmt.Errorf("failed to adjust input amount: %w", err)
+	}
+
 	url := fmt.Sprintf("%s?inputMint=%s&outputMint=%s&amount=%s&slippageBps=50",
-		JupiterQuoteURL, inputMint, outputMint, inAmount)
+		JupiterQuoteURL, inputMint, outputMint, adjustedAmount)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -206,15 +297,23 @@ func getQuote(inputMint, outputMint, inAmount string) (*QuoteResponse, error) {
 		return nil, err
 	}
 
+	// Format the JSON for logging
+	formattedJSON, err := json.MarshalIndent(quoteResp, "", "  ")
+	if err != nil {
+		LogToFile(fmt.Sprintf("Error formatting JSON: %v\nRaw response:\n%s", err, string(body)))
+	} else {
+		LogToFile(fmt.Sprintf("Quote Response:\n%s", string(formattedJSON)))
+	}
+
 	return &quoteResp, nil
 }
 
 func executeSwap(quote *QuoteResponse, userPublicKey string) (*SwapResponse, error) {
 	swapRequest := SwapRequest{
-		QuoteResponse:     *quote,
-		UserPublicKey:     userPublicKey,
-		WrapUnwrapSOL:     true,
-		UseSharedAccounts: true,
+		QuoteResponse:             *quote,
+		UserPublicKey:             userPublicKey,
+		WrapAndUnwrapSOL:          true,
+		PrioritizationFeeLamports: "auto",
 	}
 
 	jsonData, err := json.Marshal(swapRequest)
@@ -236,8 +335,89 @@ func executeSwap(quote *QuoteResponse, userPublicKey string) (*SwapResponse, err
 	var swapResp SwapResponse
 	err = json.Unmarshal(body, &swapResp)
 	if err != nil {
-		return nil, err
+		// Log the raw response body
+		LogToFile(fmt.Sprintf("Raw response body:\n%s", string(body)))
+
+		// Check if the response contains an error message
+		var errorResp struct {
+			Error string `json:"error"`
+		}
+		if jsonErr := json.Unmarshal(body, &errorResp); jsonErr == nil && errorResp.Error != "" {
+			return nil, fmt.Errorf("API error: %s", errorResp.Error)
+		}
+
+		// If it's not a known error format, return the original error
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
+	LogToFile(fmt.Sprintf("Swap Response:\n%s", string(body)))
+
 	return &swapResp, nil
+}
+
+func signAndSendTransaction(transaction string, privateKey string) error {
+	// 1. Decode the transaction data
+	decodedTransaction, err := base64.StdEncoding.DecodeString(transaction)
+	if err != nil {
+		return fmt.Errorf("failed to decode transaction: %v", err)
+	}
+
+	LogToFile(fmt.Sprintf("Decoded transaction length: %d bytes", len(decodedTransaction)))
+
+	if len(decodedTransaction) == 0 {
+		return fmt.Errorf("decoded transaction is empty")
+	}
+
+	// 2. Parse the transaction
+	tx, err := solana.TransactionFromDecoder(bin.NewBinDecoder(decodedTransaction))
+	if err != nil {
+		return fmt.Errorf("failed to parse transaction (length: %d bytes): %w", len(decodedTransaction), err)
+	}
+
+	// 3. Sign the transaction using the private key
+	kp, err := solana.PrivateKeyFromBase58(privateKey)
+	if err != nil {
+		return fmt.Errorf("failed to parse private key: %v", err)
+	}
+	tx.Sign(func(key solana.PublicKey) *solana.PrivateKey {
+		if key.Equals(kp.PublicKey()) {
+			return &kp
+		}
+		return nil
+	})
+
+	// 4. Serialize the signed transaction
+	signedTx, err := tx.MarshalBinary()
+	if err != nil {
+		return fmt.Errorf("failed to serialize signed transaction: %v", err)
+	}
+
+	// 5. Send the transaction to the Solana network
+	client := rpc.New("https://api.mainnet-beta.solana.com")
+	// Convert signedTx to *solana.Transaction
+	tx, err = solana.TransactionFromDecoder(bin.NewBinDecoder(signedTx))
+	if err != nil {
+		return fmt.Errorf("failed to decode transaction: %v", err)
+	}
+	sig, err := client.SendTransaction(context.Background(), tx)
+	if err != nil {
+		return fmt.Errorf("failed to send transaction: %v", err)
+	}
+	LogToFile(fmt.Sprintf("Transaction sent: %s", sig))
+	return nil
+}
+
+func parseAmount(amountStr string) (float64, error) {
+	// Check if the string is empty
+	if amountStr == "" {
+		return 0, fmt.Errorf("amount string is empty")
+	}
+
+	// Try to parse the string to float64
+	amount, err := strconv.ParseFloat(amountStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse amount: %v", err)
+	}
+
+	return amount, nil
 }
