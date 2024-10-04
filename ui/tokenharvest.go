@@ -113,7 +113,7 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 		if err != nil {
 			utils.LogMessage(moduleUI.LogView, "Failed to save config: "+err.Error())
 		} else {
-			utils.LogMessage(moduleUI.LogView, "Auto Harvest configuration saved")
+			utils.LogMessage(moduleUI.LogView, "Auto Harvest configuration saved: "+fmt.Sprintf("%+v", config))
 			// Trigger config reload
 			reloadConfigChan <- struct{}{}
 		}
