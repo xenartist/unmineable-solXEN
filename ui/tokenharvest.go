@@ -369,6 +369,20 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 
 	// 3. Swap button
 	manualHarvestForm.AddButton("Manual Harvest", func() {
+
+		// Get SOL balance
+		solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
+		if err != nil {
+			utils.LogMessage(moduleUI.LogView, "Error getting SOL balance: "+err.Error())
+			return
+		}
+
+		// Check if the SOL balance is greater than 0.000006
+		if solBalance <= 0.000006 {
+			utils.LogMessage(moduleUI.LogView, "Insufficient SOL balance. Minimum required: 0.000006 SOL")
+			return
+		}
+
 		utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Swapping %s SOL for solXEN", solAmount))
 
 		result, err := utils.ExchangeSolForToken(solAmount, selectedToken)
