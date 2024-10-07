@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"xoon/srbminer"
+	xenblocks "xoon/srb"
 	"xoon/utils"
 
 	"github.com/rivo/tview"
@@ -12,9 +12,7 @@ var solxengpuForm *tview.Form
 func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 	var moduleUI = CreateModuleUI("solXEN Miner (GPU)", app)
 
-	// Ensure xenblocksMiner directory and config.txt exist
-
-	if err := srbminer.CreateSrbMinerDir(moduleUI.LogView, utils.LogMessage); err != nil {
+	if err := xenblocks.CreateSrbMinerDir(moduleUI.LogView, utils.LogMessage); err != nil {
 		utils.LogMessage(moduleUI.LogView, "Error creating srbMiner directory: "+err.Error())
 	}
 
@@ -39,17 +37,17 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 		AddInputField("Worker Name", "xoon", 10, nil, func(text string) {
 			workerName = text
 		}).
-		AddButton("Install Miner", func() { srbminer.InstallSrbMiner(app, moduleUI.LogView, utils.LogMessage) }).
+		AddButton("Install Miner", func() { xenblocks.InstallSrbMiner(app, moduleUI.LogView, utils.LogMessage) }).
 		AddButton("Start Mining", func() {
-			if !srbminer.IsMining() {
+			if !xenblocks.IsMining() {
 				publicKey := utils.GetGlobalPublicKey()
-				srbminer.StartMining(app, moduleUI.LogView, utils.LogMessage,
+				xenblocks.StartMining(app, moduleUI.LogView, utils.LogMessage,
 					publicKey, selectedAlgorithm, selectedPort, workerName)
 			}
 		}).
 		AddButton("Stop Mining", func() {
-			if srbminer.IsMining() {
-				srbminer.StopMining(app, moduleUI.LogView, utils.LogMessage)
+			if xenblocks.IsMining() {
+				xenblocks.StopMining(app, moduleUI.LogView, utils.LogMessage)
 			}
 		})
 
