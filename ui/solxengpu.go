@@ -1,8 +1,8 @@
 package ui
 
 import (
+	"xoon/srbminer"
 	"xoon/utils"
-	xenblocks "xoon/xmrig"
 
 	"github.com/rivo/tview"
 )
@@ -14,8 +14,8 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 
 	// Ensure xenblocksMiner directory and config.txt exist
 
-	if err := xenblocks.CreateXmrigMinerDir(moduleUI.LogView, utils.LogMessage); err != nil {
-		utils.LogMessage(moduleUI.LogView, "Error creating xenblocksMiner directory: "+err.Error())
+	if err := srbminer.CreateSrbMinerDir(moduleUI.LogView, utils.LogMessage); err != nil {
+		utils.LogMessage(moduleUI.LogView, "Error creating srbMiner directory: "+err.Error())
 	}
 
 	// Create form
@@ -30,7 +30,7 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 	var selectedAlgorithm, selectedPort, workerName string
 
 	solxengpuForm.AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
-		AddDropDown("Mining Algorithm", []string{"GhostRider", "RandomX"}, 0, func(option string, index int) {
+		AddDropDown("Mining Algorithm", []string{"FishHash"}, 0, func(option string, index int) {
 			selectedAlgorithm = option
 		}).
 		AddDropDown("Port", []string{"3333", "13333", "80", "443"}, 0, func(option string, index int) {
@@ -39,17 +39,17 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 		AddInputField("Worker Name", "xoon", 10, nil, func(text string) {
 			workerName = text
 		}).
-		AddButton("Install Miner", func() { xenblocks.InstallXmrig(app, moduleUI.LogView, utils.LogMessage) }).
+		AddButton("Install Miner", func() { srbminer.InstallSrbMiner(app, moduleUI.LogView, utils.LogMessage) }).
 		AddButton("Start Mining", func() {
-			if !xenblocks.IsMining() {
+			if !srbminer.IsMining() {
 				publicKey := utils.GetGlobalPublicKey()
-				xenblocks.StartMining(app, moduleUI.LogView, utils.LogMessage,
+				srbminer.StartMining(app, moduleUI.LogView, utils.LogMessage,
 					publicKey, selectedAlgorithm, selectedPort, workerName)
 			}
 		}).
 		AddButton("Stop Mining", func() {
-			if xenblocks.IsMining() {
-				xenblocks.StopMining(app, moduleUI.LogView, utils.LogMessage)
+			if srbminer.IsMining() {
+				srbminer.StopMining(app, moduleUI.LogView, utils.LogMessage)
 			}
 		})
 

@@ -96,9 +96,9 @@ func InstallXmrig(app *tview.Application, logView *tview.TextView, logMessage ut
 func isXmrigInstalled(logView *tview.TextView, logMessage utils.LogMessageFunc) bool {
 	var executableName string
 	if runtime.GOOS == "windows" {
-		executableName = "xmrig.exe"
+		executableName = "\\xmrig-6.22.0\\xmrig.exe"
 	} else {
-		executableName = "xmrig"
+		executableName = "/xmrig-6.22.0/xmrig"
 	}
 
 	executablePath := filepath.Join(utils.GetExecutablePath(), XMRIG_MINER_DIR, executableName)
