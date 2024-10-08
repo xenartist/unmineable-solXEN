@@ -32,7 +32,7 @@ func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 		AddDropDown("Mining Algorithm", xenblocks.CPUAlgorithms, 0, func(option string, index int) {
 			selectedAlgorithm = option
 		}).
-		AddDropDown("Port", xenblocks.MiningPorts, 0, func(option string, index int) {
+		AddDropDown("Port", xenblocks.CPUMiningPorts, 0, func(option string, index int) {
 			selectedPort = option
 		}).
 		AddInputField("Worker Name", "xoon", 10, nil, func(text string) {

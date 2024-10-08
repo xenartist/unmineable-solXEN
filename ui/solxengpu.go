@@ -28,10 +28,10 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 	var selectedAlgorithm, selectedPort, workerName string
 
 	solxengpuForm.AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
-		AddDropDown("Mining Algorithm", []string{"FishHash"}, 0, func(option string, index int) {
+		AddDropDown("Mining Algorithm", xenblocks.GPUAlgorithms, 0, func(option string, index int) {
 			selectedAlgorithm = option
 		}).
-		AddDropDown("Port", []string{"3333", "13333", "80", "443"}, 0, func(option string, index int) {
+		AddDropDown("Port", xenblocks.GPUMiningPorts, 0, func(option string, index int) {
 			selectedPort = option
 		}).
 		AddInputField("Worker Name", "xoon", 10, nil, func(text string) {

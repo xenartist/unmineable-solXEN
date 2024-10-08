@@ -22,7 +22,7 @@ var isMining bool = false
 var GPUAlgorithms = []string{"FishHash"}
 
 // Mining ports
-var MiningPorts = []string{"3333", "13333", "80", "443", "4444"}
+var GPUMiningPorts = []string{"4444", "443", "3333", "13333", "80"}
 
 func StartMining(app *tview.Application, logView *tview.TextView, logMessage utils.LogMessageFunc,
 	publicKey string, selectedAlgorithm string, selectedPort string, workerName string) {
