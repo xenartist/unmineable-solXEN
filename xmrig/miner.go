@@ -99,7 +99,7 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 			mutex          sync.Mutex
 		)
 
-		logMessage(logView, "Debug: StartMining function called")
+		logMessage(logView, "Debug: Start Mining function called")
 
 		// Function to read from a pipe and send to UI
 		readPipe := func(pipe io.Reader) {

@@ -95,53 +95,48 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 			mutex          sync.Mutex
 		)
 
-		logMessage(logView, "Debug: StartMining function called")
+		logMessage(logView, "Debug: Start Mining...Initiating takes a while...")
 
 		// Function to read from a pipe and send to UI
 		readPipe := func(pipe io.Reader) {
 			reader := bufio.NewReader(pipe)
-			buffer := make([]byte, 1024)
-
-			logMessage(logView, "Debug: Starting to read pipe")
 
 			for {
-				n, err := reader.Read(buffer)
+				line, err := reader.ReadString('\n')
 				if err != nil {
 					if err == io.EOF {
-						logMessage(logView, "Debug: EOF reached, waiting...")
 						time.Sleep(100 * time.Millisecond)
 						continue
 					}
-					logMessage(logView, fmt.Sprintf("Error reading pipe: %v", err))
+					app.QueueUpdateDraw(func() {
+						logMessage(logView, fmt.Sprintf("Error reading pipe: %v", err))
+					})
 					break
 				}
 
-				if n > 0 {
-					output := string(buffer[:n])
-					//logMessage(logView, fmt.Sprintf("Debug: Read %d bytes", n))
-
-					lines := strings.Split(output, "\n")
-					for _, line := range lines {
-						line = strings.TrimSpace(line)
-						if line != "" {
-							if strings.Contains(line, "Mining:") {
-								mutex.Lock()
-								now := time.Now()
-								if now.Sub(lastUpdateTime) >= 10*time.Second {
-									lastUpdateTime = now
-									logMessage(logView, line)
-								}
-								mutex.Unlock()
-							} else if strings.Contains(line, "Ecosystem") {
-								//skip
-							} else {
+				line = strings.TrimSpace(line)
+				if line != "" {
+					if strings.Contains(line, "Mining:") {
+						mutex.Lock()
+						now := time.Now()
+						if now.Sub(lastUpdateTime) >= 10*time.Second {
+							lastUpdateTime = now
+							app.QueueUpdateDraw(func() {
 								logMessage(logView, line)
-							}
+							})
 						}
+						mutex.Unlock()
+					} else if strings.Contains(line, "Ecosystem") {
+						// skip
+					} else {
+						app.QueueUpdateDraw(func() {
+							logMessage(logView, line)
+						})
 					}
-				} else {
-					logMessage(logView, "Debug: No data read")
 				}
+
+				// Force a UI update after each line
+				app.QueueUpdateDraw(func() {})
 			}
 		}
 
