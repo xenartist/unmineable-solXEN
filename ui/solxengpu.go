@@ -7,7 +7,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-var solxengpuForm *tview.Form
+var solxengpuForm *tview.Form = tview.NewForm()
 
 func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 	var moduleUI = CreateModuleUI("solXEN Miner (GPU)", app)
@@ -15,9 +15,6 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 	if err := xenblocks.CreateSrbMinerDir(moduleUI.LogView, utils.LogMessage); err != nil {
 		utils.LogMessage(moduleUI.LogView, "Error creating srbMiner directory: "+err.Error())
 	}
-
-	// Create form
-	solxengpuForm := tview.NewForm()
 
 	// Determine the public key display text
 	publicKeyDisplay := ""
@@ -67,6 +64,10 @@ func CreateSolXENGPUConfigFlex(app *tview.Application, logView *tview.TextView) 
 }
 
 func UpdateGPUMinerPublicKeyTextView() {
+	if solxengpuForm == nil {
+		return
+	}
+
 	if utils.GetGlobalPublicKey() == "" {
 		solxengpuForm.GetFormItem(0).(*tview.TextView).SetText("")
 	} else {

@@ -18,7 +18,7 @@ func CreateMainMenu() *tview.List {
 			UpdateCPUMinerPublicKeyTextView() // Update the Public Key text view
 		}).
 		AddItem(SOLXEN_GPU_MINER_STRING, "", 'c', func() {
-			// UpdateGPUMinerPublicKeyTextView() // Update the Public Key text view
+			UpdateGPUMinerPublicKeyTextView() // Update the Public Key text view
 		}).
 		AddItem(TOKEN_HARVEST_STRING, "", 'd', nil).
 		AddItem("QUIT(Press 'q' 4 times)", "", 'q', nil).

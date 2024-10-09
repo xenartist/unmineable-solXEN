@@ -7,7 +7,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-var solxencpuForm *tview.Form
+var solxencpuForm *tview.Form = tview.NewForm()
 
 func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 	var moduleUI = CreateModuleUI("solXEN Miner (CPU)", app)
@@ -16,9 +16,6 @@ func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 	if err := xenblocks.CreateXmrigMinerDir(moduleUI.LogView, utils.LogMessage); err != nil {
 		utils.LogMessage(moduleUI.LogView, "Error creating xenblocksMiner directory: "+err.Error())
 	}
-
-	// Create form
-	solxencpuForm = tview.NewForm()
 
 	// Determine the public key display text
 	publicKeyDisplay := ""
@@ -68,6 +65,10 @@ func CreateSolXENCPUConfigFlex(app *tview.Application, logView *tview.TextView) 
 }
 
 func UpdateCPUMinerPublicKeyTextView() {
+	if solxencpuForm == nil {
+		return
+	}
+
 	if utils.GetGlobalPublicKey() == "" {
 		solxencpuForm.GetFormItem(0).(*tview.TextView).SetText("")
 	} else {
