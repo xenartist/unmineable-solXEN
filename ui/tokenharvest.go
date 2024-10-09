@@ -137,19 +137,25 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 
 			// Parse the harvest interval
 			var interval time.Duration
+			// Countdown ticker
+			var countdownInterval time.Duration
 			switch config.HarvestInterval {
 			case "10m":
 				interval = 10 * time.Minute
+				countdownInterval = 2 * time.Minute
 				utils.LogMessage(moduleUI.LogView, "Time until next harvest: 10m")
 			case "1h":
 				interval = 1 * time.Hour
+				countdownInterval = 10 * time.Minute
 				utils.LogMessage(moduleUI.LogView, "Time until next harvest: 1h")
 			case "1d":
 				interval = 24 * time.Hour
+				countdownInterval = 2 * time.Hour
 				utils.LogMessage(moduleUI.LogView, "Time until next harvest: 1d")
 			default:
-				utils.LogMessage(moduleUI.LogView, "Invalid harvest interval: "+config.HarvestInterval+". Using default 1 hour.")
 				interval = 1 * time.Hour
+				countdownInterval = 10 * time.Minute
+				utils.LogMessage(moduleUI.LogView, "Invalid harvest interval: "+config.HarvestInterval+". Using default 1 hour.")
 			}
 
 			// Create or update the ticker
@@ -160,20 +166,6 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 
 			// Start time for countdown
 			startTime := time.Now()
-
-			// Countdown ticker
-			var countdownInterval time.Duration
-			switch config.HarvestInterval {
-			case "10m":
-				countdownInterval = 2 * time.Minute
-			case "1h":
-				countdownInterval = 10 * time.Minute
-			case "1d":
-				countdownInterval = 2 * time.Hour
-			default:
-				countdownInterval = 10 * time.Minute
-			}
-
 			countdownTicker := time.NewTicker(countdownInterval)
 			defer countdownTicker.Stop()
 
