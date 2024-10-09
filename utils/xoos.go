@@ -37,7 +37,7 @@ func initSolXENConfig() {
 			// AutoHarvestActive: true,
 			SOLPerHarvest:   0.01,
 			TokenToHarvest:  "solXEN",
-			HarvestInterval: "1h",
+			HarvestInterval: "Off",
 		}
 		err = WriteSolXENConfigFile(defaultConfig)
 		if err != nil {

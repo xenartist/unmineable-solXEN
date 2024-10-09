@@ -56,7 +56,7 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 			// AutoHarvestActive: true,
 			SOLPerHarvest:   0.01,
 			TokenToHarvest:  "solXEN",
-			HarvestInterval: "1h",
+			HarvestInterval: "Off",
 		}
 	}
 
@@ -92,8 +92,8 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 	})
 
 	// 4. Dropdown for harvest interval
-	intervalOptions := []string{"10m", "1h", "1d"}
-	intervalIndex := 1 // default to 1h
+	intervalOptions := []string{"Off", "10m", "1h", "1d"}
+	intervalIndex := 0 // default to Off
 	for i, interval := range intervalOptions {
 		if interval == config.HarvestInterval {
 			intervalIndex = i
@@ -140,6 +140,10 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 			// Countdown ticker
 			var countdownInterval time.Duration
 			switch config.HarvestInterval {
+			case "Off":
+				interval = 1000000 * time.Hour
+				countdownInterval = 1000000 * time.Hour
+				utils.LogMessage(moduleUI.LogView, "Time until next harvest: Off")
 			case "10m":
 				interval = 10 * time.Minute
 				countdownInterval = 2 * time.Minute
@@ -153,9 +157,9 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 				countdownInterval = 2 * time.Hour
 				utils.LogMessage(moduleUI.LogView, "Time until next harvest: 1d")
 			default:
-				interval = 1 * time.Hour
-				countdownInterval = 10 * time.Minute
-				utils.LogMessage(moduleUI.LogView, "Invalid harvest interval: "+config.HarvestInterval+". Using default 1 hour.")
+				interval = 1000000 * time.Hour
+				countdownInterval = 1000000 * time.Hour
+				utils.LogMessage(moduleUI.LogView, "Invalid harvest interval: "+config.HarvestInterval+". Using default Off.")
 			}
 
 			// Create or update the ticker
