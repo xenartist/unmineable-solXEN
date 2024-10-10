@@ -54,7 +54,7 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 		// Use default values if config file can't be read
 		config = utils.SolXENConfig{
 			// AutoHarvestActive: true,
-			SOLPerHarvest:   0.01,
+			SOLPerHarvest:   0.001,
 			TokenToHarvest:  "solXEN",
 			HarvestInterval: "Off",
 		}
@@ -307,7 +307,7 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 
 	var tokenAmountText *tview.TextView
 	var selectedToken string
-	solAmount := "0.1"
+	solAmount := "0.001"
 	tokenIndex := 0 // Default to solXEN
 	selectedToken = tokenOptions[tokenIndex]
 
