@@ -37,6 +37,24 @@ echo "Building version: $VERSION"
 # Create build directory
 mkdir -p "$BUILD_DIR"
 
+# Function to build with appropriate flags
+build() {
+    local OS=$1
+    local ARCH=$2
+    local OUTPUT=$3
+
+    if [ "$OS" = "windows" ]; then
+        # Windows doesn't support full static linking
+        GOOS=$OS GOARCH=$ARCH go build -o "$OUTPUT"
+    elif [ "$OS" = "darwin" ]; then
+        # macOS: use partial static linking
+        GOOS=$OS GOARCH=$ARCH go build -ldflags="-extldflags=-static-libgcc" -o "$OUTPUT"
+    else
+        # Linux and others: use full static linking
+        CGO_ENABLED=0 GOOS=$OS GOARCH=$ARCH go build -ldflags='-w -s' -tags netgo -installsuffix netgo -o "$OUTPUT"
+    fi
+}
+
 # Build for each OS and architecture
 for OS_ARCH_KEY in "${!OS_ARCH[@]}"; do
     IFS=' ' read -r OS ARCH <<< "${OS_ARCH[$OS_ARCH_KEY]}"
@@ -55,7 +73,7 @@ for OS_ARCH_KEY in "${!OS_ARCH[@]}"; do
         BINARY_NAME="unmineable-solXEN"
     fi
     
-    GOOS=$OS GOARCH=$ARCH go build -o "$BUILD_DIR/${BINARY_NAME}"
+    build $OS $ARCH "$BUILD_DIR/${BINARY_NAME}"
     
     if [ $? -ne 0 ]; then
         echo "Build failed for $OS $ARCH"
