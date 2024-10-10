@@ -30,11 +30,11 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 	isMining = true
 
 	go func() {
-		var srbMinerPath = filepath.Join(utils.GetExecutablePath(), SRB_MINER_DIR)
+		var lolMinerPath = filepath.Join(utils.GetExecutablePath(), LOL_MINER_DIR)
 
-		var err = os.Chdir(srbMinerPath)
+		var err = os.Chdir(lolMinerPath)
 		if err != nil {
-			logMessage(logView, "Error changing to xenblocksMiner directory: "+err.Error())
+			logMessage(logView, "Error changing to lolMiner directory: "+err.Error())
 			return
 		}
 
@@ -42,10 +42,10 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 		var algorithm, host string
 		switch selectedAlgorithm {
 		case "FishHash":
-			algorithm = "fishhash"
+			algorithm = "FISHHASH"
 			host = "fishhash.unmineable.com"
 		default:
-			algorithm = "fishhash"
+			algorithm = "FISHHASH"
 			host = "fishhash.unmineable.com"
 		}
 
@@ -57,17 +57,16 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 
 		// Construct the arguments slice
 		args := []string{
-			"--algorithm", algorithm,
-			"--disable-cpu",
+			"--algo", algorithm,
 			"--pool", miningAddress,
-			"--wallet", fmt.Sprintf("SOL:%s.%s#plxp-imd8", publicKey, workerName),
+			"--user", fmt.Sprintf("SOL:%s.%s#plxp-imd8", publicKey, workerName),
 		}
 
 		var executableName string
 		if runtime.GOOS == "windows" {
-			executableName = ".\\SRBMiner-Multi-2-6-6\\SRBMiner-MULTI.exe"
+			executableName = ".\\1.91\\lolMiner.exe"
 		} else {
-			executableName = "./SRBMiner-Multi-2-6-6/SRBMiner-MULTI"
+			executableName = "./1.91/lolMiner"
 		}
 
 		cmd := exec.Command(executableName, args...)

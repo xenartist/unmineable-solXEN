@@ -17,10 +17,13 @@ func CreateMainMenu() *tview.List {
 		AddItem(SOLXEN_CPU_MINER_STRING, "", 'b', func() {
 			UpdateCPUMinerPublicKeyTextView() // Update the Public Key text view
 		}).
-		AddItem(SOLXEN_GPU_MINER_STRING, "", 'c', func() {
-			UpdateGPUMinerPublicKeyTextView() // Update the Public Key text view
+		AddItem(SOLXEN_NVIDIA_GPU_MINER_STRING, "", 'c', func() {
+			UpdateNvidiaGPUMinerPublicKeyTextView() // Update the Public Key text view
 		}).
-		AddItem(TOKEN_HARVEST_STRING, "", 'd', nil).
+		AddItem(SOLXEN_AMD_GPU_MINER_STRING, "", 'd', func() {
+			UpdateAMDGPUMinerPublicKeyTextView() // Update the Public Key text view
+		}).
+		AddItem(TOKEN_HARVEST_STRING, "", 'f', nil).
 		AddItem("QUIT(Press 'q' 4 times)", "", 'q', nil).
 		AddItem("", "by @xen_artist", 0, nil)
 

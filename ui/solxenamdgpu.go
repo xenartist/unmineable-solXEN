@@ -7,10 +7,10 @@ import (
 	"github.com/rivo/tview"
 )
 
-var solxengpuForm *tview.Form = tview.NewForm()
+var solxenamdgpuForm *tview.Form = tview.NewForm()
 
-func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
-	var moduleUI = CreateModuleUI("solXEN Miner (GPU)", app)
+func CreateSolXENAMDGPUUI(app *tview.Application) ModuleUI {
+	var moduleUI = CreateModuleUI(SOLXEN_AMD_GPU_MINER_STRING, app)
 
 	if err := xenblocks.CreateSrbMinerDir(moduleUI.LogView, utils.LogMessage); err != nil {
 		utils.LogMessage(moduleUI.LogView, "Error creating srbMiner directory: "+err.Error())
@@ -24,7 +24,7 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 
 	var selectedAlgorithm, selectedPort, workerName string
 
-	solxengpuForm.AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
+	solxenamdgpuForm.AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
 		AddDropDown("Mining Algorithm", xenblocks.GPUAlgorithms, 0, func(option string, index int) {
 			selectedAlgorithm = option
 		}).
@@ -48,29 +48,29 @@ func CreateSolXENGPUUI(app *tview.Application) ModuleUI {
 			}
 		})
 
-	contentFlex := tview.NewFlex().AddItem(solxengpuForm, 0, 1, true)
+	contentFlex := tview.NewFlex().AddItem(solxenamdgpuForm, 0, 1, true)
 
 	moduleUI.ConfigFlex.AddItem(contentFlex, 0, 1, true)
 
 	return moduleUI
 }
 
-func CreateSolXENGPUConfigFlex(app *tview.Application, logView *tview.TextView) *tview.Flex {
+func CreateSolXENAMDGPUConfigFlex(app *tview.Application, logView *tview.TextView) *tview.Flex {
 	configFlex := tview.NewFlex().
 		SetDirection(tview.FlexColumn)
 
-	configFlex.SetBorder(true).SetTitle("solXEN Config")
+	configFlex.SetBorder(true).SetTitle(SOLXEN_AMD_GPU_MINER_STRING + " Config")
 	return configFlex
 }
 
-func UpdateGPUMinerPublicKeyTextView() {
-	if solxengpuForm == nil {
+func UpdateAMDGPUMinerPublicKeyTextView() {
+	if solxenamdgpuForm == nil {
 		return
 	}
 
 	if utils.GetGlobalPublicKey() == "" {
-		solxengpuForm.GetFormItem(0).(*tview.TextView).SetText("")
+		solxenamdgpuForm.GetFormItem(0).(*tview.TextView).SetText("")
 	} else {
-		solxengpuForm.GetFormItem(0).(*tview.TextView).SetText(utils.GetGlobalPublicKey()[:8] + "********")
+		solxenamdgpuForm.GetFormItem(0).(*tview.TextView).SetText(utils.GetGlobalPublicKey()[:8] + "********")
 	}
 }

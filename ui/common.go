@@ -11,11 +11,12 @@ import (
 )
 
 const WALLET_STRING = "Solana Wallet"
-const SOLXEN_CPU_MINER_STRING = "solXEN Miner (CPU)"
-const SOLXEN_GPU_MINER_STRING = "solXEN Miner (GPU)"
+const SOLXEN_CPU_MINER_STRING = "SOL Miner (CPU)"
+const SOLXEN_NVIDIA_GPU_MINER_STRING = "SOL Miner (NVIDIA GPU)"
+const SOLXEN_AMD_GPU_MINER_STRING = "SOL Miner (AMD GPU)"
 const TOKEN_HARVEST_STRING = "Token Harvest (LFH)"
 
-var ModuleNames = []string{WALLET_STRING, SOLXEN_CPU_MINER_STRING, SOLXEN_GPU_MINER_STRING, TOKEN_HARVEST_STRING}
+var ModuleNames = []string{WALLET_STRING, SOLXEN_CPU_MINER_STRING, SOLXEN_NVIDIA_GPU_MINER_STRING, SOLXEN_AMD_GPU_MINER_STRING, TOKEN_HARVEST_STRING}
 
 type ModuleUI struct {
 	DashboardFlex *tview.Flex
@@ -169,8 +170,10 @@ func CreateConfigFlex(title string, app *tview.Application, logView *tview.TextV
 		return CreateWalletConfigFlex(app, logView)
 	case SOLXEN_CPU_MINER_STRING:
 		return CreateSolXENCPUConfigFlex(app, logView)
-	case SOLXEN_GPU_MINER_STRING:
-		return CreateSolXENGPUConfigFlex(app, logView)
+	case SOLXEN_NVIDIA_GPU_MINER_STRING:
+		return CreateSolXENNvidiaGPUConfigFlex(app, logView)
+	case SOLXEN_AMD_GPU_MINER_STRING:
+		return CreateSolXENAMDGPUConfigFlex(app, logView)
 	case TOKEN_HARVEST_STRING:
 		return CreateTokenHarvestConfigFlex(app, logView)
 

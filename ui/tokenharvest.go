@@ -14,7 +14,7 @@ import (
 var tokenOptions = []string{"solXEN", "xencat", "ORE"}
 
 func CreateTokenHarvestUI(app *tview.Application) ModuleUI {
-	var moduleUI = CreateModuleUI("Token Harvest", app)
+	var moduleUI = CreateModuleUI(TOKEN_HARVEST_STRING, app)
 
 	autoHarvestForm := createAutoHarvestForm(app, &moduleUI, walletInfoView)
 	manualHarvestForm := createManualHarvestForm(app, &moduleUI, walletInfoView)
@@ -36,7 +36,7 @@ func CreateTokenHarvestConfigFlex(app *tview.Application, logView *tview.TextVie
 	configFlex := tview.NewFlex().
 		SetDirection(tview.FlexColumn)
 
-	configFlex.SetBorder(true).SetTitle("Token Harvest Config")
+	configFlex.SetBorder(true).SetTitle(TOKEN_HARVEST_STRING + " Config")
 	return configFlex
 }
 

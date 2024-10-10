@@ -10,7 +10,7 @@ import (
 var solxencpuForm *tview.Form = tview.NewForm()
 
 func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
-	var moduleUI = CreateModuleUI("solXEN Miner (CPU)", app)
+	var moduleUI = CreateModuleUI(SOLXEN_CPU_MINER_STRING, app)
 
 	// Ensure xenblocksMiner directory and config.txt exist
 	if err := xenblocks.CreateXmrigMinerDir(moduleUI.LogView, utils.LogMessage); err != nil {
@@ -60,7 +60,7 @@ func CreateSolXENCPUConfigFlex(app *tview.Application, logView *tview.TextView) 
 	configFlex := tview.NewFlex().
 		SetDirection(tview.FlexColumn)
 
-	configFlex.SetBorder(true).SetTitle("solXEN Config")
+	configFlex.SetBorder(true).SetTitle(SOLXEN_CPU_MINER_STRING + " Config")
 	return configFlex
 }
 
