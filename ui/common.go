@@ -246,7 +246,7 @@ func UpdateWalletInfo(app *tview.Application, walletInfoView *tview.TextView) {
 		}
 
 		// Define the desired order of tokens
-		tokenOrder := []string{"solXEN", "xencat", "ORE"}
+		// tokenOrder := []string{"solXEN", "xencat", "PV", "ORE"}
 
 		// Create a map for quick lookup of balances
 		balanceMap := make(map[string]utils.TokenBalance)
@@ -255,7 +255,7 @@ func UpdateWalletInfo(app *tview.Application, walletInfoView *tview.TextView) {
 		}
 
 		// Write balances in the specified order
-		for _, symbol := range tokenOrder {
+		for _, symbol := range tokenOptions {
 			if balance, exists := balanceMap[symbol]; exists {
 				infoText.WriteString(fmt.Sprintf(" | %.6f %s ", balance.Balance, balance.Symbol))
 			} else {

@@ -11,7 +11,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-var tokenOptions = []string{"solXEN", "xencat", "ORE"}
+var tokenOptions = []string{"solXEN", "xencat", "PV", "ORE"}
 
 func CreateTokenHarvestUI(app *tview.Application) ModuleUI {
 	var moduleUI = CreateModuleUI(TOKEN_HARVEST_STRING, app)
@@ -379,7 +379,7 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 			return
 		}
 
-		utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s for solXEN", solAmount))
+		utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s for %s", solAmount, selectedToken))
 
 		result, err := utils.ExchangeSolForToken(solAmount, selectedToken)
 		if err != nil {
@@ -387,7 +387,7 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 			utils.LogMessage(moduleUI.LogView, "Error: "+err.Error())
 		} else {
 			tokenAmountText.SetText("Amount(Est.): \n" + result + " " + selectedToken)
-			utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s -> solXEN: %s successfully", solAmount, result))
+			utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s -> %s: %s successfully", solAmount, selectedToken, result))
 
 			// Update wallet info after 60 seconds
 			go func() {
