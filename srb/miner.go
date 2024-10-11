@@ -18,8 +18,8 @@ import (
 
 var isMining bool = false
 
-// CPU algorithms
-var GPUAlgorithms = []string{"FishHash (GPU>6GB)"}
+// AMD GPU algorithms
+var GPUAlgorithms = []string{"FishHash (GPU>6GB)", "Blake3 (GPU>4GB)", "KarlsenHash (GPU>3GB)"}
 
 // Mining ports
 var GPUMiningPorts = []string{"4444", "443", "3333", "13333", "80"}
@@ -41,12 +41,18 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 		// Set algorithm and host based on selectedAlgorithm
 		var algorithm, host string
 		switch selectedAlgorithm {
-		case "FishHash":
+		case "KarlsenHash (GPU>3GB)":
+			algorithm = "karlsenhashv2"
+			host = "karlsenhash.unmineable.com"
+		case "Blake3 (GPU>4GB)":
+			algorithm = "blake3_alephium"
+			host = "blake3.unmineable.com"
+		case "FishHash (GPU>6GB)":
 			algorithm = "fishhash"
 			host = "fishhash.unmineable.com"
 		default:
-			algorithm = "fishhash"
-			host = "fishhash.unmineable.com"
+			algorithm = "blake3_alephium"
+			host = "blake3.unmineable.com"
 		}
 
 		// Construct the mining address

@@ -18,8 +18,8 @@ import (
 
 var isMining bool = false
 
-// CPU algorithms
-var GPUAlgorithms = []string{"FishHash (GPU>6GB)"}
+// Nvidia GPU algorithms
+var GPUAlgorithms = []string{"FishHash (GPU>6GB)", "Blake3 (GPU>4GB)", "KarlsenHash (GPU>3GB)"}
 
 // Mining ports
 var GPUMiningPorts = []string{"4444", "443", "3333", "13333", "80"}
@@ -41,7 +41,13 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 		// Set algorithm and host based on selectedAlgorithm
 		var algorithm, host string
 		switch selectedAlgorithm {
-		case "FishHash":
+		case "KarlsenHash (GPU>3GB)":
+			algorithm = "KARLSENV2"
+			host = "karlsenhash.unmineable.com"
+		case "Blake3 (GPU>4GB)":
+			algorithm = "ALEPH"
+			host = "blake3.unmineable.com"
+		case "FishHash (GPU>6GB)":
 			algorithm = "FISHHASH"
 			host = "fishhash.unmineable.com"
 		default:
@@ -171,9 +177,9 @@ func StopMining(app *tview.Application, logView *tview.TextView, logMessage util
 func KillMiningProcess() {
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
-		cmd = exec.Command("taskkill", "/F", "/IM", "SRBMiner-MULTI*")
+		cmd = exec.Command("taskkill", "/F", "/IM", "lolMiner*")
 	} else {
-		cmd = exec.Command("pkill", "-f", "SRBMiner-MULTI")
+		cmd = exec.Command("pkill", "-f", "lolMiner")
 	}
 	_ = cmd.Run()
 }
