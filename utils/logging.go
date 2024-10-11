@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/rivo/tview"
@@ -18,8 +19,15 @@ var (
 )
 
 func initFileLogger() {
-	var err error
-	logFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	execPath, err := os.Executable()
+	if err != nil {
+		log.Println("Failed to get executable path:", err)
+		return
+	}
+
+	logFilePath := filepath.Join(filepath.Dir(execPath), "debug.log")
+
+	logFile, err = os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println("Failed to open log file:", err)
 		return

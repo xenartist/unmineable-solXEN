@@ -1,26 +1,21 @@
 package ui
 
 import (
-	"fmt"
-	"strconv"
 	"xoon/utils"
 	xenblocks "xoon/xmrig"
 
 	"github.com/rivo/tview"
 )
 
-var solxencpuForm *tview.Form
+var solxencpuForm *tview.Form = tview.NewForm()
 
 func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
-	var moduleUI = CreateModuleUI("solXEN Miner (CPU)", app)
+	var moduleUI = CreateModuleUI(SOLXEN_CPU_MINER_STRING, app)
 
 	// Ensure xenblocksMiner directory and config.txt exist
 	if err := xenblocks.CreateXmrigMinerDir(moduleUI.LogView, utils.LogMessage); err != nil {
 		utils.LogMessage(moduleUI.LogView, "Error creating xenblocksMiner directory: "+err.Error())
 	}
-
-	// Create form
-	solxencpuForm = tview.NewForm()
 
 	// Determine the public key display text
 	publicKeyDisplay := ""
@@ -34,7 +29,7 @@ func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 		AddDropDown("Mining Algorithm", xenblocks.CPUAlgorithms, 0, func(option string, index int) {
 			selectedAlgorithm = option
 		}).
-		AddDropDown("Port", xenblocks.MiningPorts, 0, func(option string, index int) {
+		AddDropDown("Port", xenblocks.CPUMiningPorts, 0, func(option string, index int) {
 			selectedPort = option
 		}).
 		AddInputField("Worker Name", "xoon", 10, nil, func(text string) {
@@ -52,17 +47,6 @@ func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 			if xenblocks.IsMining() {
 				xenblocks.StopMining(app, moduleUI.LogView, utils.LogMessage)
 			}
-		}).
-		AddButton("Test Swap", func() {
-			go func() {
-				amount, err := utils.ExchangeSolForToken("0.000001", "solXEN")
-				if err != nil {
-					utils.LogMessage(moduleUI.LogView, "Swap failed: "+err.Error())
-				} else {
-					amountFloat, _ := strconv.ParseFloat(amount, 64)
-					utils.LogMessage(moduleUI.LogView, "Swapped SOL for solXEN "+fmt.Sprintf("%.6f", amountFloat))
-				}
-			}()
 		})
 
 	contentFlex := tview.NewFlex().AddItem(solxencpuForm, 0, 1, true)
@@ -76,11 +60,15 @@ func CreateSolXENCPUConfigFlex(app *tview.Application, logView *tview.TextView) 
 	configFlex := tview.NewFlex().
 		SetDirection(tview.FlexColumn)
 
-	configFlex.SetBorder(true).SetTitle("solXEN Config")
+	configFlex.SetBorder(true).SetTitle(SOLXEN_CPU_MINER_STRING + " Config")
 	return configFlex
 }
 
 func UpdateCPUMinerPublicKeyTextView() {
+	if solxencpuForm == nil {
+		return
+	}
+
 	if utils.GetGlobalPublicKey() == "" {
 		solxencpuForm.GetFormItem(0).(*tview.TextView).SetText("")
 	} else {

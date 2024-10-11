@@ -90,7 +90,8 @@ func showMainInterface(app *tview.Application) {
 
 	walletUI := ui.CreateWalletUI(app)
 	solXENCPUUI := ui.CreateSolXENCPUUI(app)
-	solXENGPUUI := ui.CreateSolXENGPUUI(app)
+	solXENNvidiaGPUUI := ui.CreateSolXENNvidiaGPUUI(app)
+	solXENAMDGPUUI := ui.CreateSolXENAMDGPUUI(app)
 	tokenharvestUI := ui.CreateTokenHarvestUI(app)
 	switchView := ui.CreateSwitchViewFunc(rightFlex, mainMenu)
 
@@ -106,9 +107,14 @@ func showMainInterface(app *tview.Application) {
 			LogView:       solXENCPUUI.LogView,
 		},
 		{
-			DashboardFlex: solXENGPUUI.DashboardFlex,
-			ConfigFlex:    solXENGPUUI.ConfigFlex,
-			LogView:       solXENGPUUI.LogView,
+			DashboardFlex: solXENNvidiaGPUUI.DashboardFlex,
+			ConfigFlex:    solXENNvidiaGPUUI.ConfigFlex,
+			LogView:       solXENNvidiaGPUUI.LogView,
+		},
+		{
+			DashboardFlex: solXENAMDGPUUI.DashboardFlex,
+			ConfigFlex:    solXENAMDGPUUI.ConfigFlex,
+			LogView:       solXENAMDGPUUI.LogView,
 		},
 		{
 			DashboardFlex: tokenharvestUI.DashboardFlex,

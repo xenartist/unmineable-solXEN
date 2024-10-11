@@ -35,9 +35,9 @@ func initSolXENConfig() {
 		// If file doesn't exist, create a default one
 		defaultConfig := SolXENConfig{
 			// AutoHarvestActive: true,
-			SOLPerHarvest:   0.01,
+			SOLPerHarvest:   0.001,
 			TokenToHarvest:  "solXEN",
-			HarvestInterval: "1h",
+			HarvestInterval: "Off",
 		}
 		err = WriteSolXENConfigFile(defaultConfig)
 		if err != nil {

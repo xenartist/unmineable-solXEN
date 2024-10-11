@@ -18,11 +18,11 @@ import (
 
 var isMining bool = false
 
-// CPU algorithms
-var CPUAlgorithms = []string{"GhostRider", "RandomX"}
+// Nvidia GPU algorithms
+var GPUAlgorithms = []string{"FishHash (GPU>6GB)", "Blake3 (GPU>4GB)", "KarlsenHash (GPU>3GB)"}
 
 // Mining ports
-var CPUMiningPorts = []string{"443", "3333", "13333", "80"}
+var GPUMiningPorts = []string{"4444", "443", "3333", "13333", "80"}
 
 func StartMining(app *tview.Application, logView *tview.TextView, logMessage utils.LogMessageFunc,
 	publicKey string, selectedAlgorithm string, selectedPort string, workerName string) {
@@ -30,48 +30,49 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 	isMining = true
 
 	go func() {
-		var xenblocksMinerPath = filepath.Join(utils.GetExecutablePath(), XMRIG_MINER_DIR)
+		var lolMinerPath = filepath.Join(utils.GetExecutablePath(), LOL_MINER_DIR)
 
-		var err = os.Chdir(xenblocksMinerPath)
+		var err = os.Chdir(lolMinerPath)
 		if err != nil {
-			logMessage(logView, "Error changing to xenblocksMiner directory: "+err.Error())
+			logMessage(logView, "Error changing to lolMiner directory: "+err.Error())
 			return
 		}
 
 		// Set algorithm and host based on selectedAlgorithm
 		var algorithm, host string
 		switch selectedAlgorithm {
-		case "GhostRider":
-			algorithm = "gr"
-			host = "ghostrider.unmineable.com"
-		case "RandomX":
-			algorithm = "rx"
-			host = "rx.unmineable.com"
+		case "KarlsenHash (GPU>3GB)":
+			algorithm = "KARLSENV2"
+			host = "karlsenhash.unmineable.com"
+		case "Blake3 (GPU>4GB)":
+			algorithm = "ALEPH"
+			host = "blake3.unmineable.com"
+		case "FishHash (GPU>6GB)":
+			algorithm = "FISHHASH"
+			host = "fishhash.unmineable.com"
 		default:
-			// Default to GhostRider if unknown algorithm is provided
-			algorithm = "gr"
-			host = "ghostrider.unmineable.com"
+			algorithm = "FISHHASH"
+			host = "fishhash.unmineable.com"
 		}
 
 		// Construct the mining address
 		miningAddress := host + ":" + selectedPort
-		if selectedPort == "443" {
+		if selectedPort == "443" || selectedPort == "4444" {
 			miningAddress = "stratum+ssl://" + miningAddress
 		}
 
 		// Construct the arguments slice
 		args := []string{
-			"-a", algorithm,
-			"-o", miningAddress,
-			"-u", fmt.Sprintf("SOL:%s.%s#plxp-imd8", publicKey, workerName),
-			"-p", "x",
+			"--algo", algorithm,
+			"--pool", miningAddress,
+			"--user", fmt.Sprintf("SOL:%s.%s#plxp-imd8", publicKey, workerName),
 		}
 
 		var executableName string
 		if runtime.GOOS == "windows" {
-			executableName = ".\\xmrig-6.22.0\\xmrig.exe"
+			executableName = ".\\1.91\\lolMiner.exe"
 		} else {
-			executableName = "./xmrig-6.22.0/xmrig"
+			executableName = "./1.91/lolMiner"
 		}
 
 		cmd := exec.Command(executableName, args...)
@@ -99,53 +100,48 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 			mutex          sync.Mutex
 		)
 
-		logMessage(logView, "Debug: Start Mining function called")
+		logMessage(logView, "Debug: Start Mining...Initiating takes a while...")
 
 		// Function to read from a pipe and send to UI
 		readPipe := func(pipe io.Reader) {
 			reader := bufio.NewReader(pipe)
-			buffer := make([]byte, 1024)
-
-			logMessage(logView, "Debug: Starting to read pipe")
 
 			for {
-				n, err := reader.Read(buffer)
+				line, err := reader.ReadString('\n')
 				if err != nil {
 					if err == io.EOF {
-						logMessage(logView, "Debug: EOF reached, waiting...")
 						time.Sleep(100 * time.Millisecond)
 						continue
 					}
-					logMessage(logView, fmt.Sprintf("Error reading pipe: %v", err))
+					app.QueueUpdateDraw(func() {
+						logMessage(logView, fmt.Sprintf("Error reading pipe: %v", err))
+					})
 					break
 				}
 
-				if n > 0 {
-					output := string(buffer[:n])
-					//logMessage(logView, fmt.Sprintf("Debug: Read %d bytes", n))
-
-					lines := strings.Split(output, "\n")
-					for _, line := range lines {
-						line = strings.TrimSpace(line)
-						if line != "" {
-							if strings.Contains(line, "Mining:") {
-								mutex.Lock()
-								now := time.Now()
-								if now.Sub(lastUpdateTime) >= 10*time.Second {
-									lastUpdateTime = now
-									logMessage(logView, line)
-								}
-								mutex.Unlock()
-							} else if strings.Contains(line, "Ecosystem") {
-								//skip
-							} else {
+				line = strings.TrimSpace(line)
+				if line != "" {
+					if strings.Contains(line, "Mining:") {
+						mutex.Lock()
+						now := time.Now()
+						if now.Sub(lastUpdateTime) >= 10*time.Second {
+							lastUpdateTime = now
+							app.QueueUpdateDraw(func() {
 								logMessage(logView, line)
-							}
+							})
 						}
+						mutex.Unlock()
+					} else if strings.Contains(line, "Ecosystem") {
+						// skip
+					} else {
+						app.QueueUpdateDraw(func() {
+							logMessage(logView, line)
+						})
 					}
-				} else {
-					logMessage(logView, "Debug: No data read")
 				}
+
+				// Force a UI update after each line
+				app.QueueUpdateDraw(func() {})
 			}
 		}
 
@@ -181,9 +177,9 @@ func StopMining(app *tview.Application, logView *tview.TextView, logMessage util
 func KillMiningProcess() {
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
-		cmd = exec.Command("taskkill", "/F", "/IM", "xmrig*")
+		cmd = exec.Command("taskkill", "/F", "/IM", "lolMiner*")
 	} else {
-		cmd = exec.Command("pkill", "-f", "xmrig")
+		cmd = exec.Command("pkill", "-f", "lolMiner")
 	}
 	_ = cmd.Run()
 }
