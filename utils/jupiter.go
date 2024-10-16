@@ -23,6 +23,7 @@ const (
 	SolXEN          = "solXEN"
 	OGSolXEN        = "OG solXEN"
 	xencat          = "xencat"
+	PV              = "PV"
 	ORE             = "ORE"
 	JupiterQuoteURL = "https://quote-api.jup.ag/v6/quote"
 	JupiterSwapURL  = "https://quote-api.jup.ag/v6/swap"
@@ -74,11 +75,13 @@ var (
 		SolXEN: "6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7",
 		// OGSolXEN: "EEqrab5tdnVdZv7a4AUAvGehDAtM8gWd7szwfyYbmGkM",
 		xencat: "7UN8WkBumTUCofVPXCPjNWQ6msQhzrg9tFQRP48Nmw5V",
+		PV:     "5px3a5LWR6CmiYX3ktpNnGYiEypfDdemRd74GDYbsJ2H",
 		ORE:    "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp",
 	}
 	solXENPrice float64 = 0
 	// ogSolXENPrice float64
 	xencatPrice float64 = 0
+	pvPrice     float64 = 0
 	orePrice    float64 = 0
 	priceMutex  sync.RWMutex
 )
@@ -99,6 +102,7 @@ func updatePrices() {
 	solXENPrice = fetchPrice(SolXEN)
 	// ogSolXENPrice = fetchPrice(OGSolXEN)
 	xencatPrice = fetchPrice(xencat)
+	pvPrice = fetchPrice(PV)
 	orePrice = fetchPrice(ORE)
 }
 
@@ -164,6 +168,8 @@ func GetTokenExchangeAmount(solAmount string, tokenName string) (string, error) 
 	// 	price = ogSolXENPrice
 	case xencat:
 		price = xencatPrice
+	case PV:
+		price = pvPrice
 	case ORE:
 		price = orePrice
 	default:
@@ -197,6 +203,8 @@ func GetSolExchangeAmount(tokenAmount string, tokenName string) (string, error) 
 		price = solXENPrice
 	case xencat:
 		price = xencatPrice
+	case PV:
+		price = pvPrice
 	case ORE:
 		price = orePrice
 	default:

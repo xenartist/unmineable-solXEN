@@ -586,6 +586,7 @@ func GetWalletTokenBalances(publicKey string) ([]TokenBalance, error) {
 	targetMints := map[string]bool{
 		"6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7": true,
 		"7UN8WkBumTUCofVPXCPjNWQ6msQhzrg9tFQRP48Nmw5V": true,
+		"5px3a5LWR6CmiYX3ktpNnGYiEypfDdemRd74GDYbsJ2H": true,
 		"oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp":  true,
 	}
 
@@ -633,6 +634,8 @@ func getTokenSymbol(mint string) string {
 		return "OG solXEN"
 	case "7UN8WkBumTUCofVPXCPjNWQ6msQhzrg9tFQRP48Nmw5V":
 		return "xencat"
+	case "5px3a5LWR6CmiYX3ktpNnGYiEypfDdemRd74GDYbsJ2H":
+		return "PV"
 	case "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp":
 		return "ORE"
 	default:
