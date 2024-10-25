@@ -6,9 +6,13 @@ GUI (TUI in terminal/console) mining [solXEN](https://solscan.io/token/6f8deE148
  ![GitHub forks](https://img.shields.io/github/forks/xenartist/unmineable-solXEN?style=flat)
  ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/xenartist/unmineable-solXEN/total) ![GitHub License](https://img.shields.io/github/license/xenartist/unmineable-solXEN)
 
+## Screenshot
+
+![unmineable-solXEN-GUI](screenshot/unmineable-solXEN-GUI.png)
+
 ## Features
 
-![unmineable-solXEN-flowchart](https://github.com/xenartist/unmineable-solXEN/blob/main/screenshot/unmineable-solXEN-flowchart.jpg)
+![unmineable-solXEN-flowchart](screenshot/unmineable-solXEN-flowchart.jpg)
 
 - [x] Both CPU & GPU mining are supported
 - [x] Mining SOL through [unmineable.com](https://unmineable.com/)
@@ -85,7 +89,7 @@ You can check the mining status here https://unmineable.com/address/public_key?c
 
 NOTE: Please ensure that the **"Auto Payout"** is enabled on the unmineable.com website, otherwise you won't be able to receive the mined SOL automatically.
 
-![unmineable-auto-payout](https://github.com/xenartist/unmineable-solXEN/blob/main/screenshot/unmineable-auto-payout.png)
+![unmineable-auto-payout](screenshot/unmineable-auto-payout.png)
 
 ## Credits
 
