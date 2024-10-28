@@ -19,7 +19,13 @@ import (
 var isMining bool = false
 
 // Nvidia GPU algorithms
-var GPUAlgorithms = []string{"FishHash (GPU>6GB)", "BeamHash (GPU>6GB)", "Blake3 (GPU>4GB)", "KarlsenHash (GPU>3GB)"}
+var GPUAlgorithms = []string{
+	"FishHash (GPU>6GB)",
+	"BeamHash (GPU>6GB)",
+	"Ethash (GPU>6GB)",
+	"Blake3 (GPU>4GB)",
+	"KarlsenHash (GPU>3GB)",
+}
 
 // Mining ports
 var GPUMiningPorts = []string{"4444", "443", "3333", "13333", "80"}
@@ -53,6 +59,9 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 		case "BeamHash (GPU>6GB)":
 			algorithm = "BEAM-III"
 			host = "beamhash.unmineable.com"
+		case "Ethash (GPU>6GB)":
+			algorithm = "ETHASH"
+			host = "ethash.unmineable.com"
 		default:
 			algorithm = "FISHHASH"
 			host = "fishhash.unmineable.com"
