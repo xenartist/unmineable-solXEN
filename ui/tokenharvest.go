@@ -12,6 +12,7 @@ import (
 )
 
 var tokenOptions = []string{"solXEN", "xencat", "PV", "ORE"}
+var autoHarvestCounter = 0
 
 func CreateTokenHarvestUI(app *tview.Application) ModuleUI {
 	var moduleUI = CreateModuleUI(TOKEN_HARVEST_STRING, app)
@@ -267,6 +268,27 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 					} else {
 						utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %v -> %s: %s successfully", config.SOLPerHarvest, config.TokenToHarvest, result))
 
+						// Increment counter and check for burn condition
+						autoHarvestCounter++
+						if autoHarvestCounter >= 2 {
+							// Reset counter
+							autoHarvestCounter = 0
+
+							// Parse the received token amount
+							tokenAmount := strings.Split(result, " ")[0]
+
+							// Burn the tokens after a delay to ensure the swap completed
+							go func(amount, token string) {
+								time.Sleep(5 * time.Minute)
+								burnResult, err := utils.BurnToken(amount, token)
+								if err != nil {
+									utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Error burning tokens: %v", err))
+								} else {
+									utils.LogMessage(moduleUI.LogView, burnResult)
+								}
+							}(tokenAmount, config.TokenToHarvest)
+						}
+
 						// Update wallet info after 60 seconds
 						go func() {
 							time.Sleep(60 * time.Second)
@@ -396,6 +418,55 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 			}()
 		}
 
+	})
+
+	// Add Manual Harvest & Burn button (new)
+	manualHarvestForm.AddButton("Manual Harvest & Burn", func() {
+		// Get SOL balance
+		solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
+		if err != nil {
+			utils.LogMessage(moduleUI.LogView, "Error getting SOL balance: "+err.Error())
+			return
+		}
+
+		// Check if the SOL balance is greater than 0.000006
+		if solBalance <= 0.000006 {
+			utils.LogMessage(moduleUI.LogView, "Insufficient SOL balance. Minimum required: 0.000006 SOL")
+			return
+		}
+
+		utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s for %s", solAmount, selectedToken))
+
+		result, err := utils.ExchangeSolForToken(solAmount, selectedToken)
+		if err != nil {
+			utils.LogMessage(moduleUI.LogView, "Error: "+err.Error())
+		} else {
+			tokenAmountText.SetText("Amount(Est.): \n" + result + " " + selectedToken)
+			utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s -> %s: %s successfully", solAmount, selectedToken, result))
+
+			// Extract token amount from result
+			tokenAmount := strings.Split(result, " ")[0]
+
+			// Burn tokens after delay
+			go func() {
+				time.Sleep(5 * time.Minute)
+				burnResult, err := utils.BurnToken(tokenAmount, selectedToken)
+				if err != nil {
+					utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Error burning tokens: %v", err))
+				} else {
+					utils.LogMessage(moduleUI.LogView, burnResult)
+				}
+
+				// Update wallet info
+				UpdateWalletInfo(app, walletInfoView)
+			}()
+
+			// Update wallet info after initial purchase
+			go func() {
+				time.Sleep(60 * time.Second)
+				UpdateWalletInfo(app, walletInfoView)
+			}()
+		}
 	})
 
 	return manualHarvestForm
