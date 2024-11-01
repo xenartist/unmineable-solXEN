@@ -109,7 +109,7 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 	reloadConfigChan := make(chan struct{})
 
 	// 5. Save Config button
-	autoHarvestForm.AddButton("Save Config & Let's Fuckin Harvest!", func() {
+	autoHarvestForm.AddButton("Save Config & Auto Harvest", func() {
 		err := utils.WriteSolXENConfigFile(config)
 		if err != nil {
 			utils.LogMessage(moduleUI.LogView, "Failed to save config: "+err.Error())
@@ -270,7 +270,7 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 
 						// Increment counter and check for burn condition
 						autoHarvestCounter++
-						if autoHarvestCounter >= 2 {
+						if autoHarvestCounter >= 100 {
 							// Reset counter
 							autoHarvestCounter = 0
 
@@ -386,7 +386,7 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 	updateTokenAmount()
 
 	// 3. Swap button
-	manualHarvestForm.AddButton("Manual Harvest", func() {
+	manualHarvestForm.AddButton("Harvest", func() {
 
 		// Get SOL balance
 		solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
@@ -420,8 +420,30 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 
 	})
 
+	// Add Burn Memo input field
+	titleInput := tview.NewInputField().
+		SetLabel("Title: ").
+		SetText("solXEN Burn Memo")
+
+	imgUrlInput := tview.NewInputField().
+		SetLabel("Image URL: ").
+		SetText("https://xxx.png")
+
+	contentInput := tview.NewInputField().
+		SetLabel("Content: ").
+		SetText("solXEN To Da Moon")
+
+	authorInput := tview.NewInputField().
+		SetLabel("Author: ").
+		SetText("solXEN")
+
+	manualHarvestForm.AddFormItem(titleInput)
+	manualHarvestForm.AddFormItem(imgUrlInput)
+	manualHarvestForm.AddFormItem(contentInput)
+	manualHarvestForm.AddFormItem(authorInput)
+
 	// Add Manual Harvest & Burn button (new)
-	manualHarvestForm.AddButton("Manual Harvest & Burn", func() {
+	manualHarvestForm.AddButton("Harvest & Burn Memo", func() {
 		// Get SOL balance
 		solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
 		if err != nil {
