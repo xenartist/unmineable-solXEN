@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -10,6 +11,13 @@ import (
 
 	"github.com/rivo/tview"
 )
+
+type BurnMemo struct {
+	Title   string `json:"title"`
+	Image   string `json:"image"`
+	Content string `json:"content"`
+	Author  string `json:"author"`
+}
 
 var tokenOptions = []string{"solXEN", "xencat", "PV", "ORE"}
 var autoHarvestCounter = 0
@@ -280,7 +288,7 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 							// Burn the tokens after a delay to ensure the swap completed
 							go func(amount, token string) {
 								time.Sleep(5 * time.Minute)
-								burnResult, err := utils.BurnToken(amount, token)
+								burnResult, err := utils.BurnToken(amount, token, "solXEN Burn with Memo")
 								if err != nil {
 									utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Error burning tokens: %v", err))
 								} else {
@@ -386,7 +394,7 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 	updateTokenAmount()
 
 	// 3. Swap button
-	manualHarvestForm.AddButton("Harvest", func() {
+	manualHarvestForm.AddButton("Harvest (No Burn)", func() {
 
 		// Get SOL balance
 		solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
@@ -423,10 +431,10 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 	// Add Burn Memo input field
 	titleInput := tview.NewInputField().
 		SetLabel("Title: ").
-		SetText("solXEN Burn Memo")
+		SetText("solXEN Burn with Memo")
 
-	imgUrlInput := tview.NewInputField().
-		SetLabel("Image URL: ").
+	imageInput := tview.NewInputField().
+		SetLabel("Image: ").
 		SetText("https://xxx.png")
 
 	contentInput := tview.NewInputField().
@@ -438,12 +446,12 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 		SetText("solXEN")
 
 	manualHarvestForm.AddFormItem(titleInput)
-	manualHarvestForm.AddFormItem(imgUrlInput)
+	manualHarvestForm.AddFormItem(imageInput)
 	manualHarvestForm.AddFormItem(contentInput)
 	manualHarvestForm.AddFormItem(authorInput)
 
 	// Add Manual Harvest & Burn button (new)
-	manualHarvestForm.AddButton("Harvest & Burn Memo", func() {
+	manualHarvestForm.AddButton("Harvest (and Burn)", func() {
 		// Get SOL balance
 		solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
 		if err != nil {
@@ -472,7 +480,22 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 			// Burn tokens after delay
 			go func() {
 				time.Sleep(5 * time.Minute)
-				burnResult, err := utils.BurnToken(tokenAmount, selectedToken)
+
+				burnMemo := BurnMemo{
+					Title:   titleInput.GetText(),
+					Image:   imageInput.GetText(),
+					Content: contentInput.GetText(),
+					Author:  authorInput.GetText(),
+				}
+
+				jsonData, err := json.Marshal(burnMemo)
+				if err != nil {
+					utils.LogMessage(moduleUI.LogView, "Error marshalling burn memo: "+err.Error())
+					return
+				}
+				memoText := string(jsonData)
+
+				burnResult, err := utils.BurnToken(tokenAmount, selectedToken, memoText)
 				if err != nil {
 					utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Error burning tokens: %v", err))
 				} else {

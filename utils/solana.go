@@ -12,7 +12,7 @@ import (
 )
 
 // BurnToken burns a specified amount of a given token
-func BurnToken(amount string, token string) (string, error) {
+func BurnToken(amount string, token string, memoText string) (string, error) {
 	// Initialize Solana client
 	client := rpc.New("https://api.mainnet-beta.solana.com")
 
@@ -104,12 +104,33 @@ func BurnToken(amount string, token string) (string, error) {
 		[]solana.PublicKey{}, // multisigSigners (empty if not using multisig)
 	)
 
+	// Create instructions slice to hold both burn and memo instructions
+	instructions := []solana.Instruction{burnInstruction.Build()}
+
+	// Add memo instruction if memo text is provided
+	if memoText != "" {
+		memoProgram := solana.MemoProgramID
+		memoInstruction := solana.NewInstruction(
+			memoProgram,
+			solana.AccountMetaSlice{
+				{
+					PublicKey:  owner.PublicKey(),
+					IsSigner:   true,
+					IsWritable: false,
+				},
+			},
+			[]byte(memoText), // memo data as bytes
+		)
+
+		instructions = append(instructions, memoInstruction)
+	}
+
 	// Create and send the transaction
 	var tx *solana.Transaction
 	for i := 0; i < maxRetries; i++ {
 		var err error
 		tx, err = solana.NewTransaction(
-			[]solana.Instruction{burnInstruction.Build()},
+			instructions,
 			recentBlockhash.Value.Blockhash,
 			solana.TransactionPayer(owner.PublicKey()),
 		)
