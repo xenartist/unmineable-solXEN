@@ -288,7 +288,22 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 							// Burn the tokens after a delay to ensure the swap completed
 							go func(amount, token string) {
 								time.Sleep(5 * time.Minute)
-								burnResult, err := utils.BurnToken(amount, token, "solXEN Burn with Memo")
+
+								burnMemo := BurnMemo{
+									Title:   "solXEN Burn with Memo",
+									Image:   "https://xxx.png",
+									Content: "solXEN To Da Moon",
+									Author:  "solXEN",
+								}
+
+								jsonData, err := json.Marshal(burnMemo)
+								memoText := string(jsonData)
+								if err != nil {
+									utils.LogMessage(moduleUI.LogView, "Error marshalling burn memo: "+err.Error())
+									return
+								}
+
+								burnResult, err := utils.BurnToken(amount, token, memoText)
 								if err != nil {
 									utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Error burning tokens: %v", err))
 								} else {
