@@ -27,7 +27,7 @@ const (
 	ORE             = "ORE"
 	JupiterQuoteURL = "https://quote-api.jup.ag/v6/quote"
 	JupiterSwapURL  = "https://quote-api.jup.ag/v6/swap"
-	JupiterPriceURL = "https://price.jup.ag/v6/price"
+	JupiterPriceURL = "https://api.jup.ag/price/v2"
 	SOLMint         = "So11111111111111111111111111111111111111112"
 )
 
@@ -115,7 +115,7 @@ func fetchPrice(tokenName string) float64 {
 		return 0
 	}
 
-	apiURL := fmt.Sprintf("%s?ids=SOL&vsToken=%s", JupiterPriceURL, tokenAddress)
+	apiURL := fmt.Sprintf("%s?ids=%s&vsToken=%s", JupiterPriceURL, SOLMint, tokenAddress)
 
 	resp, err := http.Get(apiURL)
 	if err != nil {
@@ -132,22 +132,31 @@ func fetchPrice(tokenName string) float64 {
 
 	var priceResponse struct {
 		Data map[string]struct {
-			Price float64 `json:"price"`
+			ID    string `json:"id"`
+			Type  string `json:"type"`
+			Price string `json:"price"`
 		} `json:"data"`
+		TimeTaken float64 `json:"timeTaken"`
 	}
 	if err := json.Unmarshal(body, &priceResponse); err != nil {
 		LogToFile(fmt.Sprintf("Failed to parse JSON response: %v", err))
 		return 0
 	}
 
-	priceData, ok := priceResponse.Data["SOL"]
+	priceData, ok := priceResponse.Data[SOLMint]
 	if !ok {
 		LogToFile("Price not found in response")
 		return 0
 	}
 
-	LogToFile(fmt.Sprintf("Fetched price for %s: %f", tokenName, priceData.Price))
-	return priceData.Price
+	price, err := strconv.ParseFloat(priceData.Price, 64)
+	if err != nil {
+		LogToFile(fmt.Sprintf("Failed to parse price string: %v", err))
+		return 0
+	}
+
+	LogToFile(fmt.Sprintf("Fetched price for %s: %f", tokenName, price))
+	return price
 }
 
 // GetTokenExchangeAmount queries the amount of specified token that can be exchanged for a given amount of SOL
