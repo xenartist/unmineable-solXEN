@@ -113,10 +113,23 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 		config.HarvestInterval = option
 	})
 
+	// 5. Dropdown for burn interval
+	burnOptions := []string{"Off", "Burn/69", "Burn/100", "Burn/420"}
+	burnIndex := 0
+	for i, option := range burnOptions {
+		if option == config.HarvestBurn {
+			burnIndex = i
+			break
+		}
+	}
+	autoHarvestForm.AddDropDown("Burn Interval", burnOptions, burnIndex, func(option string, index int) {
+		config.HarvestBurn = option
+	})
+
 	// Add a channel to trigger config reload
 	reloadConfigChan := make(chan struct{})
 
-	// 5. Save Config button
+	// 6. Save Config button
 	autoHarvestForm.AddButton("Save Config & Auto Harvest", func() {
 		err := utils.WriteSolXENConfigFile(config)
 		if err != nil {
@@ -278,7 +291,22 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 
 						// Increment counter and check for burn condition
 						autoHarvestCounter++
-						if autoHarvestCounter >= 100 {
+
+						// Set auto burn interval
+						var autoBurnInterval int = 0
+
+						switch config.HarvestBurn {
+						case "Off":
+							autoBurnInterval = -1
+						case "Burn/69":
+							autoBurnInterval = 69
+						case "Burn/100":
+							autoBurnInterval = 100
+						case "Burn/420":
+							autoBurnInterval = 420
+						}
+
+						if autoBurnInterval != -1 && autoHarvestCounter >= autoBurnInterval {
 							// Reset counter
 							autoHarvestCounter = 0
 
