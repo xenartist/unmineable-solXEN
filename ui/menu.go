@@ -12,7 +12,7 @@ import (
 
 func CreateMainMenu() *tview.List {
 	mainMenu := tview.NewList().
-		AddItem("unmineable-solXEN (2.3.0)", "", 0, nil).
+		AddItem("unmineable-solXEN (3.0.0)", "", 0, nil).
 		AddItem(WALLET_STRING, "", 'a', nil).
 		AddItem(SOLXEN_CPU_MINER_STRING, "", 'b', func() {
 			UpdateCPUMinerPublicKeyTextView() // Update the Public Key text view
