@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -20,7 +19,8 @@ type BurnMemo struct {
 }
 
 var tokenOptions = []string{"solXEN", "xencat", "PV", "ORE"}
-var autoHarvestCounter = 0
+
+// var autoHarvestCounter = 0
 
 func CreateTokenHarvestUI(app *tview.Application) ModuleUI {
 	var moduleUI = CreateModuleUI(TOKEN_HARVEST_STRING, app)
@@ -114,17 +114,17 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 	})
 
 	// 5. Dropdown for burn interval
-	burnOptions := []string{"Off", "Burn/69", "Burn/100", "Burn/420"}
-	burnIndex := 0
-	for i, option := range burnOptions {
-		if option == config.HarvestBurn {
-			burnIndex = i
-			break
-		}
-	}
-	autoHarvestForm.AddDropDown("Burn Interval", burnOptions, burnIndex, func(option string, index int) {
-		config.HarvestBurn = option
-	})
+	// burnOptions := []string{"Off", "Burn/69", "Burn/100", "Burn/420"}
+	// burnIndex := 0
+	// for i, option := range burnOptions {
+	// 	if option == config.HarvestBurn {
+	// 		burnIndex = i
+	// 		break
+	// 	}
+	// }
+	// autoHarvestForm.AddDropDown("Burn Interval", burnOptions, burnIndex, func(option string, index int) {
+	// 	config.HarvestBurn = option
+	// })
 
 	// Add a channel to trigger config reload
 	reloadConfigChan := make(chan struct{})
@@ -290,55 +290,55 @@ func createAutoHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletInf
 						utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %v -> %s: %s successfully", config.SOLPerHarvest, config.TokenToHarvest, result))
 
 						// Increment counter and check for burn condition
-						autoHarvestCounter++
+						// autoHarvestCounter++
 
 						// Set auto burn interval
-						var autoBurnInterval int = 0
+						// var autoBurnInterval int = 0
 
-						switch config.HarvestBurn {
-						case "Off":
-							autoBurnInterval = -1
-						case "Burn/69":
-							autoBurnInterval = 69
-						case "Burn/100":
-							autoBurnInterval = 100
-						case "Burn/420":
-							autoBurnInterval = 420
-						}
+						// switch config.HarvestBurn {
+						// case "Off":
+						// 	autoBurnInterval = -1
+						// case "Burn/69":
+						// 	autoBurnInterval = 69
+						// case "Burn/100":
+						// 	autoBurnInterval = 100
+						// case "Burn/420":
+						// 	autoBurnInterval = 420
+						// }
 
-						if autoBurnInterval != -1 && autoHarvestCounter >= autoBurnInterval {
-							// Reset counter
-							autoHarvestCounter = 0
+						// if autoBurnInterval != -1 && autoHarvestCounter >= autoBurnInterval {
+						// 	// Reset counter
+						// 	autoHarvestCounter = 0
 
-							// Parse the received token amount
-							tokenAmount := strings.Split(result, " ")[0]
+						// 	// Parse the received token amount
+						// 	tokenAmount := strings.Split(result, " ")[0]
 
-							// Burn the tokens after a delay to ensure the swap completed
-							go func(amount, token string) {
-								time.Sleep(5 * time.Minute)
+						// 	// Burn the tokens after a delay to ensure the swap completed
+						// 	go func(amount, token string) {
+						// 		time.Sleep(5 * time.Minute)
 
-								burnMemo := BurnMemo{
-									Title:   "solXEN Burn with Memo",
-									Image:   "https://xxx.png",
-									Content: "solXEN To Da Moon",
-									Author:  "solXEN",
-								}
+						// 		burnMemo := BurnMemo{
+						// 			Title:   "solXEN Burn with Memo",
+						// 			Image:   "https://xxx.png",
+						// 			Content: "solXEN To Da Moon",
+						// 			Author:  "solXEN",
+						// 		}
 
-								jsonData, err := json.Marshal(burnMemo)
-								memoText := string(jsonData)
-								if err != nil {
-									utils.LogMessage(moduleUI.LogView, "Error marshalling burn memo: "+err.Error())
-									return
-								}
+						// 		jsonData, err := json.Marshal(burnMemo)
+						// 		memoText := string(jsonData)
+						// 		if err != nil {
+						// 			utils.LogMessage(moduleUI.LogView, "Error marshalling burn memo: "+err.Error())
+						// 			return
+						// 		}
 
-								burnResult, err := utils.BurnToken(amount, token, memoText)
-								if err != nil {
-									utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Error burning tokens: %v", err))
-								} else {
-									utils.LogMessage(moduleUI.LogView, burnResult)
-								}
-							}(tokenAmount, config.TokenToHarvest)
-						}
+						// 		burnResult, err := utils.BurnToken(amount, token, memoText)
+						// 		if err != nil {
+						// 			utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Error burning tokens: %v", err))
+						// 		} else {
+						// 			utils.LogMessage(moduleUI.LogView, burnResult)
+						// 		}
+						// 	}(tokenAmount, config.TokenToHarvest)
+						// }
 
 						// Update wallet info after 60 seconds
 						go func() {
@@ -437,7 +437,7 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 	updateTokenAmount()
 
 	// 3. Swap button
-	manualHarvestForm.AddButton("Harvest (No Burn)", func() {
+	manualHarvestForm.AddButton("Harvest", func() {
 
 		// Get SOL balance
 		solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
@@ -472,90 +472,90 @@ func createManualHarvestForm(app *tview.Application, moduleUI *ModuleUI, walletI
 	})
 
 	// Add Burn Memo input field
-	titleInput := tview.NewInputField().
-		SetLabel("Title: ").
-		SetText("solXEN Burn with Memo")
+	// titleInput := tview.NewInputField().
+	// 	SetLabel("Title: ").
+	// 	SetText("solXEN Burn with Memo")
 
-	imageInput := tview.NewInputField().
-		SetLabel("Image: ").
-		SetText("https://xxx.png")
+	// imageInput := tview.NewInputField().
+	// 	SetLabel("Image: ").
+	// 	SetText("https://xxx.png")
 
-	contentInput := tview.NewInputField().
-		SetLabel("Content: ").
-		SetText("solXEN To Da Moon")
+	// contentInput := tview.NewInputField().
+	// 	SetLabel("Content: ").
+	// 	SetText("solXEN To Da Moon")
 
-	authorInput := tview.NewInputField().
-		SetLabel("Author: ").
-		SetText("solXEN")
+	// authorInput := tview.NewInputField().
+	// 	SetLabel("Author: ").
+	// 	SetText("solXEN")
 
-	manualHarvestForm.AddFormItem(titleInput)
-	manualHarvestForm.AddFormItem(imageInput)
-	manualHarvestForm.AddFormItem(contentInput)
-	manualHarvestForm.AddFormItem(authorInput)
+	// manualHarvestForm.AddFormItem(titleInput)
+	// manualHarvestForm.AddFormItem(imageInput)
+	// manualHarvestForm.AddFormItem(contentInput)
+	// manualHarvestForm.AddFormItem(authorInput)
 
 	// Add Manual Harvest & Burn button (new)
-	manualHarvestForm.AddButton("Harvest (and Burn)", func() {
-		// Get SOL balance
-		solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
-		if err != nil {
-			utils.LogMessage(moduleUI.LogView, "Error getting SOL balance: "+err.Error())
-			return
-		}
+	// manualHarvestForm.AddButton("Harvest (and Burn)", func() {
+	// 	// Get SOL balance
+	// 	solBalance, err := utils.GetSOLBalance(utils.GetGlobalPublicKey())
+	// 	if err != nil {
+	// 		utils.LogMessage(moduleUI.LogView, "Error getting SOL balance: "+err.Error())
+	// 		return
+	// 	}
 
-		// Check if the SOL balance is greater than 0.000006
-		if solBalance <= 0.000006 {
-			utils.LogMessage(moduleUI.LogView, "Insufficient SOL balance. Minimum required: 0.000006 SOL")
-			return
-		}
+	// 	// Check if the SOL balance is greater than 0.000006
+	// 	if solBalance <= 0.000006 {
+	// 		utils.LogMessage(moduleUI.LogView, "Insufficient SOL balance. Minimum required: 0.000006 SOL")
+	// 		return
+	// 	}
 
-		utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s for %s", solAmount, selectedToken))
+	// 	utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s for %s", solAmount, selectedToken))
 
-		result, err := utils.ExchangeSolForToken(solAmount, selectedToken)
-		if err != nil {
-			utils.LogMessage(moduleUI.LogView, "Error: "+err.Error())
-		} else {
-			tokenAmountText.SetText("Amount(Est.): \n" + result + " " + selectedToken)
-			utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s -> %s: %s successfully", solAmount, selectedToken, result))
+	// 	result, err := utils.ExchangeSolForToken(solAmount, selectedToken)
+	// 	if err != nil {
+	// 		utils.LogMessage(moduleUI.LogView, "Error: "+err.Error())
+	// 	} else {
+	// 		tokenAmountText.SetText("Amount(Est.): \n" + result + " " + selectedToken)
+	// 		utils.LogMessage(moduleUI.LogView, fmt.Sprintf("SOL: %s -> %s: %s successfully", solAmount, selectedToken, result))
 
-			// Extract token amount from result
-			tokenAmount := strings.Split(result, " ")[0]
+	// 		// Extract token amount from result
+	// 		tokenAmount := strings.Split(result, " ")[0]
 
-			// Burn tokens after delay
-			go func() {
-				time.Sleep(5 * time.Minute)
+	// 		// Burn tokens after delay
+	// 		go func() {
+	// 			time.Sleep(5 * time.Minute)
 
-				burnMemo := BurnMemo{
-					Title:   titleInput.GetText(),
-					Image:   imageInput.GetText(),
-					Content: contentInput.GetText(),
-					Author:  authorInput.GetText(),
-				}
+	// 			burnMemo := BurnMemo{
+	// 				Title:   titleInput.GetText(),
+	// 				Image:   imageInput.GetText(),
+	// 				Content: contentInput.GetText(),
+	// 				Author:  authorInput.GetText(),
+	// 			}
 
-				jsonData, err := json.Marshal(burnMemo)
-				if err != nil {
-					utils.LogMessage(moduleUI.LogView, "Error marshalling burn memo: "+err.Error())
-					return
-				}
-				memoText := string(jsonData)
+	// 			jsonData, err := json.Marshal(burnMemo)
+	// 			if err != nil {
+	// 				utils.LogMessage(moduleUI.LogView, "Error marshalling burn memo: "+err.Error())
+	// 				return
+	// 			}
+	// 			memoText := string(jsonData)
 
-				burnResult, err := utils.BurnToken(tokenAmount, selectedToken, memoText)
-				if err != nil {
-					utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Error burning tokens: %v", err))
-				} else {
-					utils.LogMessage(moduleUI.LogView, burnResult)
-				}
+	// 			burnResult, err := utils.BurnToken(tokenAmount, selectedToken, memoText)
+	// 			if err != nil {
+	// 				utils.LogMessage(moduleUI.LogView, fmt.Sprintf("Error burning tokens: %v", err))
+	// 			} else {
+	// 				utils.LogMessage(moduleUI.LogView, burnResult)
+	// 			}
 
-				// Update wallet info
-				UpdateWalletInfo(app, walletInfoView)
-			}()
+	// 			// Update wallet info
+	// 			UpdateWalletInfo(app, walletInfoView)
+	// 		}()
 
-			// Update wallet info after initial purchase
-			go func() {
-				time.Sleep(60 * time.Second)
-				UpdateWalletInfo(app, walletInfoView)
-			}()
-		}
-	})
+	// 		// Update wallet info after initial purchase
+	// 		go func() {
+	// 			time.Sleep(60 * time.Second)
+	// 			UpdateWalletInfo(app, walletInfoView)
+	// 		}()
+	// 	}
+	// })
 
 	return manualHarvestForm
 }

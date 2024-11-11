@@ -24,6 +24,7 @@ var GPUAlgorithms = []string{
 	"BeamHash (GPU>6GB)",
 	"Ethash (GPU>6GB)",
 	"Blake3 (GPU>4GB)",
+	"Etchash (GPU>4GB)",
 	"KarlsenHash (GPU>3GB)",
 }
 
@@ -53,6 +54,9 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 		case "Blake3 (GPU>4GB)":
 			algorithm = "ALEPH"
 			host = "blake3.unmineable.com"
+		case "Etchash (GPU>4GB)":
+			algorithm = "ETCHASH"
+			host = "etchash.unmineable.com"
 		case "FishHash (GPU>6GB)":
 			algorithm = "FISHHASH"
 			host = "fishhash.unmineable.com"
