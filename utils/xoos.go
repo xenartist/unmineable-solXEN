@@ -13,7 +13,7 @@ type SolXENConfig struct {
 	SOLPerHarvest   float64 `json:"solPerHarvest"`
 	TokenToHarvest  string  `json:"tokenToHarvest"`
 	HarvestInterval string  `json:"harvestInterval"`
-	HarvestBurn     string  `json:"harvestBurn"`
+	// HarvestBurn     string  `json:"harvestBurn"`
 }
 
 func GetExecutablePath() string {
@@ -39,7 +39,7 @@ func initSolXENConfig() {
 			SOLPerHarvest:   0.001,
 			TokenToHarvest:  "solXEN",
 			HarvestInterval: "Off",
-			HarvestBurn:     "Off",
+			// HarvestBurn:     "Off",
 		}
 		err = WriteSolXENConfigFile(defaultConfig)
 		if err != nil {
