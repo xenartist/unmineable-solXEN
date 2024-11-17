@@ -427,20 +427,44 @@ func ExportPrivateKey() error {
 		return err
 	}
 
-	// Prepare data for export
-	exportData := map[string]string{
-		"public_key":  walletData.PublicKey,
-		"private_key": walletData.PrivateKey,
-	}
-	exportJSON, err := json.MarshalIndent(exportData, "", "  ")
+	// Decode base64 private key to bytes
+	privateKeyBytes, err := base64.StdEncoding.DecodeString(walletData.PrivateKey)
 	if err != nil {
+		LogToFile("Error decoding private key from base64: " + err.Error())
+		return err
+	}
+
+	// Convert bytes to array of integers
+	privateKeyInts := make([]int, len(privateKeyBytes))
+	for i, b := range privateKeyBytes {
+		privateKeyInts[i] = int(b)
+	}
+
+	// Prepare data for export
+	exportData := map[string]interface{}{
+		"public_key":  walletData.PublicKey,
+		"private_key": privateKeyInts,
+	}
+
+	// use json.NewEncoder to format the json
+	buffer := &bytes.Buffer{}
+	encoder := json.NewEncoder(buffer)
+	encoder.SetIndent("", "  ")
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(exportData); err != nil {
 		LogToFile("Error marshalling export data: " + err.Error())
 		return err
 	}
 
+	// process the output format
+	output := buffer.String()
+	output = strings.Replace(output, "\n    ", "", -1)
+	output = strings.Replace(output, ",\n  ]", "]", 1)
+	output = strings.Replace(output, "\n  ]", "]", 1)
+
 	// Save export data to file
 	exportFilePath := filepath.Join(walletDir, "solXEN-private-key-exported.json")
-	err = os.WriteFile(exportFilePath, exportJSON, 0600)
+	err = os.WriteFile(exportFilePath, []byte(output), 0600)
 	if err != nil {
 		LogToFile("Error saving export data: " + err.Error())
 		return err
