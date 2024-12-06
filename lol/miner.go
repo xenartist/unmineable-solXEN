@@ -26,6 +26,7 @@ var GPUAlgorithms = []string{
 	"Blake3 (GPU>4GB)",
 	"Etchash (GPU>4GB)",
 	"Nexapow (GPU>4GB)",
+	"Autolykos (GPU>4GB)",
 	"KarlsenHash (GPU>3GB)",
 }
 
@@ -61,6 +62,9 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 		case "Nexapow (GPU>4GB)":
 			algorithm = "NEXA"
 			host = "nexapow.unmineable.com"
+		case "Autolykos (GPU>4GB)":
+			algorithm = "AUTOLYKOS2"
+			host = "autolykos.unmineable.com"
 		case "FishHash (GPU>6GB)":
 			algorithm = "FISHHASH"
 			host = "fishhash.unmineable.com"
