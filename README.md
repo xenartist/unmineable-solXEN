@@ -1,6 +1,6 @@
 # unmineable-solXEN
 
-GUI (TUI in terminal/console) mining [solXEN](https://solscan.io/token/6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7) & targeting tokens by using CPU & GPU through [unmineable.com](https://unmineable.com/) and [jup.ag](https://jup.ag/)
+GUI (TUI in terminal/console) collecting [solXEN](https://solscan.io/token/6f8deE148nynnSiWshA9vLydEbJGpDeKh5G4PRgjmzG7) & targeting tokens by using CPU & GPU through [unmineable.com](https://unmineable.com/) and [jup.ag](https://jup.ag/)
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/xenartist/unmineable-solXEN?style=flat)
  ![GitHub forks](https://img.shields.io/github/forks/xenartist/unmineable-solXEN?style=flat)
