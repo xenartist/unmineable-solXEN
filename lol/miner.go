@@ -90,15 +90,20 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 		}
 
 		// Construct the arguments slice
-		args := []string{
-			"--algo", algorithm,
-			"--pool", miningAddress,
-			"--user", fmt.Sprintf("SOL:%s.%s#plxp-imd8", publicKey, workerName),
-		}
-
-		// Add --pers parameter for EQUI144_5 algorithm
+		var args []string
 		if algorithm == "EQUI144_5" {
-			args = append(args, "--pers", "BgoldPoW")
+			args = []string{
+				"--algo", algorithm,
+				"--pers", "BgoldPoW",
+				"--pool", miningAddress,
+				"--user", fmt.Sprintf("SOL:%s.%s#plxp-imd8", publicKey, workerName),
+			}
+		} else {
+			args = []string{
+				"--algo", algorithm,
+				"--pool", miningAddress,
+				"--user", fmt.Sprintf("SOL:%s.%s#plxp-imd8", publicKey, workerName),
+			}
 		}
 
 		var executableName string
