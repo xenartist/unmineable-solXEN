@@ -28,7 +28,7 @@ var GPUAlgorithms = []string{
 	"Nexapow (GPU>4GB)",
 	"Autolykos (GPU>4GB)",
 	"KarlsenHash (GPU>3GB)",
-	"KHeavyHash (GPU>3GB)",
+	"ZHash (GPU>3GB)",
 }
 
 // Mining ports
@@ -54,9 +54,9 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 		case "KarlsenHash (GPU>3GB)":
 			algorithm = "KARLSENV2"
 			host = "karlsenhash.unmineable.com"
-		case "KHeavyHash (GPU>3GB)":
-			algorithm = "KASPA"
-			host = "kheavyhash.unmineable.com"
+		case "ZHash (GPU>3GB)":
+			algorithm = "EQUI144_5"
+			host = "zhash.unmineable.com"
 		case "Blake3 (GPU>4GB)":
 			algorithm = "ALEPH"
 			host = "blake3.unmineable.com"
