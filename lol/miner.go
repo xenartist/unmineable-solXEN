@@ -96,6 +96,11 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 			"--user", fmt.Sprintf("SOL:%s.%s#plxp-imd8", publicKey, workerName),
 		}
 
+		// Add --pers parameter for EQUI144_5 algorithm
+		if algorithm == "EQUI144_5" {
+			args = append(args, "--pers", "BgoldPoW")
+		}
+
 		var executableName string
 		if runtime.GOOS == "windows" {
 			executableName = ".\\1.91\\lolMiner.exe"
