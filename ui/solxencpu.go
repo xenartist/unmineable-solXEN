@@ -4,10 +4,24 @@ import (
 	"xoon/utils"
 	xenblocks "xoon/xmrig"
 
+	"runtime"
+	"strconv"
+
 	"github.com/rivo/tview"
 )
 
 var solxencpuForm *tview.Form = tview.NewForm()
+
+// Add this helper function to generate thread options
+func generateThreadOptions() []string {
+	maxThreads := runtime.NumCPU()
+	options := []string{"1"} // Start with 1 thread
+
+	for threads := 2; threads <= maxThreads; threads *= 2 {
+		options = append(options, strconv.Itoa(threads))
+	}
+	return options
+}
 
 func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 	var moduleUI = CreateModuleUI(SOLXEN_CPU_MINER_STRING, app)
@@ -24,8 +38,12 @@ func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 	}
 
 	var selectedAlgorithm, selectedPort, workerName string
+	var selectedThreads string = "1" // Default value
 
 	solxencpuForm.AddTextView("Public Key", publicKeyDisplay, 0, 1, false, true).
+		AddDropDown("CPU Threads", generateThreadOptions(), 0, func(option string, index int) {
+			selectedThreads = option
+		}).
 		AddDropDown("Mining Algorithm", xenblocks.CPUAlgorithms, 0, func(option string, index int) {
 			selectedAlgorithm = option
 		}).
@@ -40,7 +58,7 @@ func CreateSolXENCPUUI(app *tview.Application) ModuleUI {
 			if !xenblocks.IsMining() {
 				publicKey := utils.GetGlobalPublicKey()
 				xenblocks.StartMining(app, moduleUI.LogView, utils.LogMessage,
-					publicKey, selectedAlgorithm, selectedPort, workerName)
+					publicKey, selectedThreads, selectedAlgorithm, selectedPort, workerName)
 			}
 		}).
 		AddButton("Stop Mining", func() {
