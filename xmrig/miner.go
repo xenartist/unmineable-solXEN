@@ -25,7 +25,7 @@ var CPUAlgorithms = []string{"GhostRider", "RandomX"}
 var CPUMiningPorts = []string{"443", "3333", "13333", "80"}
 
 func StartMining(app *tview.Application, logView *tview.TextView, logMessage utils.LogMessageFunc,
-	publicKey string, selectedAlgorithm string, selectedPort string, workerName string) {
+	publicKey string, selectedThreads string, selectedAlgorithm string, selectedPort string, workerName string) {
 
 	isMining = true
 
@@ -62,6 +62,7 @@ func StartMining(app *tview.Application, logView *tview.TextView, logMessage uti
 		// Construct the arguments slice
 		args := []string{
 			"-a", algorithm,
+			"-t", selectedThreads,
 			"-o", miningAddress,
 			"-u", fmt.Sprintf("SOL:%s.%s#plxp-imd8", publicKey, workerName),
 			"-p", "x",
